@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { BookOpenText, LayoutGrid, Trophy, WalletCards } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
@@ -11,10 +12,10 @@ import { useWrongNetwork } from "@/hooks/usePool";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/", label: "Overview" },
-  { to: "/vaults", label: "Vaults" },
-  { to: "/prize", label: "Prize" },
-  { to: "/account", label: "Account" },
+  { to: "/", label: "Overview", icon: BookOpenText },
+  { to: "/vaults", label: "Vaults", icon: LayoutGrid },
+  { to: "/prize", label: "Draw", icon: Trophy },
+  { to: "/account", label: "Portfolio", icon: WalletCards },
 ];
 
 function scan(address: string) {
@@ -45,14 +46,27 @@ export function Layout() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="grain-layer" aria-hidden="true" />
 
-      <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
+      <a
+        href="#main-content"
+        className="fixed top-2 left-2 z-[70] -translate-y-20 rounded-sm bg-foreground px-4 py-2 text-sm text-background focus:translate-y-0"
+      >
+        Skip to content
+      </a>
+
+      <header className="sticky top-0 z-50 border-b border-border bg-background/88 backdrop-blur-md">
+        <div className="hidden border-b border-border/70 md:block">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-2">
+            <span className="label text-muted-foreground">Confidential prize savings · Public record 001</span>
+            <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">ETHEREUM SEPOLIA / ZAMA FHEVM</span>
+          </div>
+        </div>
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-5 sm:px-8">
           <NavLink to="/" className="group flex shrink-0 items-center gap-2.5">
             <PotMark className="size-7 text-primary transition-transform duration-500 group-hover:-rotate-6" />
             <span className="font-display text-[1.35rem] font-semibold tracking-tight">CachePot</span>
           </NavLink>
 
-          <nav className="hidden flex-1 items-center gap-7 md:flex">
+          <nav aria-label="Primary navigation" className="hidden flex-1 items-center gap-7 md:flex">
             {NAV.map((item) => (
               <NavLink
                 key={item.to}
@@ -86,29 +100,43 @@ export function Layout() {
           </div>
         </div>
 
-        <nav className="flex items-center gap-6 overflow-x-auto border-t border-border px-5 py-3 md:hidden">
-          {NAV.map((item) => (
+      </header>
+
+      <WrongNetworkBanner />
+
+      <main id="main-content" className="mx-auto max-w-6xl px-5 pb-32 sm:px-8 md:pb-24">
+        <Outlet />
+      </main>
+
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 overflow-hidden rounded-lg border border-border bg-card/94 shadow-[0_16px_50px_rgb(0_0_0/0.22)] backdrop-blur-md md:hidden"
+      >
+        {NAV.map((item) => {
+          const Icon = item.icon;
+          return (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === "/"}
               className={({ isActive }) =>
-                cn("label whitespace-nowrap", isActive ? "text-primary" : "text-muted-foreground")
+                cn(
+                  "flex min-h-14 flex-col items-center justify-center gap-1 border-r border-border text-[9px] font-mono tracking-[0.1em] uppercase last:border-r-0",
+                  isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                )
               }
             >
+              <Icon className="size-4" strokeWidth={1.7} />
               {item.label}
             </NavLink>
-          ))}
-        </nav>
-      </header>
+          );
+        })}
+      </nav>
 
-      <WrongNetworkBanner />
-
-      <main className="mx-auto max-w-6xl px-5 pb-24 sm:px-8">
-        <Outlet />
-      </main>
-
-      <footer className="border-t border-border">
+      <footer className="border-t border-border bg-card/35">
+        <div className="mx-auto max-w-6xl px-5 pt-8 sm:px-8">
+          <div className="folio-rule">Filed as CachePot protocol record</div>
+        </div>
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 md:grid-cols-3">
           <div>
             <div className="label text-muted-foreground">Deployed on</div>
@@ -164,11 +192,14 @@ export function PageHead({
   aside?: ReactNode;
 }) {
   return (
-    <div className="rise flex flex-col gap-6 border-b border-border py-12 md:flex-row md:items-end md:justify-between">
-      <div className="max-w-2xl">
-        <div className="label text-primary">{eyebrow}</div>
-        <h1 className="mt-3 text-4xl leading-[1.05] font-semibold sm:text-5xl">{title}</h1>
-        {lede && <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{lede}</p>}
+    <div className="rise grid gap-7 border-b border-border py-10 md:grid-cols-[3.25rem_minmax(0,1fr)_auto] md:items-end md:py-14">
+      <div className="hidden h-full border-r border-primary/35 pr-4 md:flex md:items-start md:justify-end">
+        <span className="ledger-number [writing-mode:vertical-rl]">FILE / {eyebrow}</span>
+      </div>
+      <div className="max-w-3xl">
+        <div className="folio-rule max-w-sm text-primary">{eyebrow}</div>
+        <h1 className="mt-4 text-4xl leading-[1.02] font-semibold sm:text-5xl">{title}</h1>
+        {lede && <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">{lede}</p>}
       </div>
       {aside}
     </div>

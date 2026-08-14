@@ -25,6 +25,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
   const wrongNetwork = useWrongNetwork();
   const [amount, setAmount] = useState("100");
   const [exit, setExit] = useState("50");
+  const [mode, setMode] = useState<"deposit" | "withdraw">("deposit");
 
   const mine = position.positions.find((entry) => entry.meta.vault === meta.vault);
   const disabled = !isConnected || busy || wrongNetwork;
@@ -49,13 +50,13 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
         }
       />
 
-      <div className="grid gap-12 py-12 lg:grid-cols-[1.15fr_1fr]">
-        <div className="rise space-y-10">
-          <section className="rounded-lg border border-border bg-card p-7">
+      <div className="grid gap-12 py-12 lg:grid-cols-[1.2fr_.8fr]">
+        <div className="rise space-y-8">
+          <section className="ledger-inset p-6">
             <div className="flex items-baseline justify-between gap-4">
               <div>
-                <div className="label text-primary">Step 01</div>
-                <h2 className="mt-2 text-2xl font-semibold">Get test tokens</h2>
+                <div className="label text-primary">Faucet entry</div>
+                <h2 className="mt-2 text-xl font-semibold">Fund the private wallet first</h2>
               </div>
               <Coins className="size-5 shrink-0 text-muted-foreground" />
             </div>
@@ -85,58 +86,56 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             </div>
           </section>
 
-          <section className="rounded-lg border border-border bg-card p-7">
-            <div className="label text-primary">Step 02</div>
-            <h2 className="mt-2 text-2xl font-semibold">Deposit into the vault</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              The first deposit also approves the vault as an operator on your {meta.symbol} — that is one extra
-              signature, once.
-            </p>
-            <div className="mt-6">
-              <AmountField id="deposit-amount" label="Amount to save" value={amount} onChange={setAmount} disabled={disabled} />
+          <div>
+            <div className="paper-tabs" role="tablist" aria-label="Vault operation">
+              <button type="button" role="tab" aria-selected={mode === "deposit"} data-active={mode === "deposit"} className="paper-tab" onClick={() => setMode("deposit")}>
+                Deposit
+              </button>
+              <button type="button" role="tab" aria-selected={mode === "withdraw"} data-active={mode === "withdraw"} className="paper-tab" onClick={() => setMode("withdraw")}>
+                Withdraw
+              </button>
             </div>
-            <Button
-              size="lg"
-              className="mt-6 w-full"
-              disabled={disabled}
-              onClick={() => run(() => actions.deposit(parseAmount(amount)))}
-            >
-              <Lock className="size-4" />
-              {busy ? "Working…" : "Encrypt & deposit"}
-            </Button>
-          </section>
-
-          <section className="rounded-lg border border-border p-7">
-            <div className="label text-muted-foreground">Anytime</div>
-            <h2 className="mt-2 text-2xl font-semibold">Withdraw</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Asking for more than you hold does not revert — the contract clamps the encrypted amount to your balance,
-              so a failed withdrawal cannot leak the size of your position.
-            </p>
-            <div className="mt-6">
-              <AmountField
-                id="withdraw-amount"
-                label="Amount to take out"
-                value={exit}
-                onChange={setExit}
-                disabled={disabled}
-              />
-            </div>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="mt-6 w-full"
-              disabled={disabled}
-              onClick={() => run(() => actions.withdraw(parseAmount(exit)))}
-            >
-              Withdraw
-            </Button>
-          </section>
+            <section className="ledger-sheet rounded-tl-none p-7 pl-12 sm:pl-16">
+              {mode === "deposit" ? (
+                <>
+                  <div className="folio-rule max-w-xs text-primary">Private entry / 01</div>
+                  <h2 className="mt-3 text-3xl font-semibold">Deposit into the vault</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    The first deposit also approves the vault as an operator on your {meta.symbol} — one extra signature, once.
+                  </p>
+                  <div className="mt-7">
+                    <AmountField id="deposit-amount" label="Amount to save" value={amount} onChange={setAmount} disabled={disabled} />
+                  </div>
+                  <Button size="lg" className="mt-7 w-full" disabled={disabled} onClick={() => run(() => actions.deposit(parseAmount(amount)))}>
+                    <Lock className="size-4" />
+                    {busy ? "Working…" : "Encrypt & deposit"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="folio-rule max-w-xs">Private entry / 02</div>
+                  <h2 className="mt-3 text-3xl font-semibold">Withdraw without revealing the balance</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Asking for more than you hold does not revert — the contract clamps the encrypted amount to your balance, so a failed withdrawal cannot leak your position.
+                  </p>
+                  <div className="mt-7">
+                    <AmountField id="withdraw-amount" label="Amount to take out" value={exit} onChange={setExit} disabled={disabled} />
+                  </div>
+                  <Button size="lg" variant="secondary" className="mt-7 w-full" disabled={disabled} onClick={() => run(() => actions.withdraw(parseAmount(exit)))}>
+                    Withdraw to private wallet
+                  </Button>
+                </>
+              )}
+            </section>
+          </div>
         </div>
 
         <aside className="rise space-y-8 lg:sticky lg:top-24 lg:self-start" style={{ animationDelay: "120ms" }}>
-          <section className="rounded-lg border border-border bg-card p-7">
-            <div className="label text-muted-foreground">In this vault</div>
+          <section className="ledger-sheet p-7 pl-12 sm:pl-16">
+            <div className="flex items-start justify-between gap-4">
+              <div className="label text-muted-foreground">Private folio · In this vault</div>
+              <span className="seal-stamp size-14 shrink-0">Owner<br />Only</span>
+            </div>
             <div className="numeral mt-2 text-4xl">
               <Veil
                 sealed={!position.hasPermit}
@@ -166,7 +165,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             )}
           </section>
 
-          <section className="rounded-lg border border-border p-7">
+          <section className="border-l-2 border-primary pl-6">
             <div className="label text-primary">Fair odds</div>
             <h3 className="mt-2 text-xl font-semibold">Weight accrues by the second</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -176,7 +175,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             </p>
           </section>
 
-          <section className="rounded-lg border border-border p-7">
+          <section className="ledger-inset p-7">
             <div className="label text-muted-foreground">What the deposit button does</div>
             <ol className="mt-4 space-y-3">
               {trace.map((line, index) => (

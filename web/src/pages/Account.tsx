@@ -27,15 +27,33 @@ export function Account() {
       />
 
       {!isConnected ? (
-        <div className="rise flex flex-col items-start gap-5 rounded-lg border border-border bg-card p-10 py-16">
-          <h2 className="text-2xl font-semibold">Connect a wallet to continue.</h2>
-          <p className="max-w-md text-muted-foreground">
-            Nothing here is fetched from a server — your position is decrypted locally, in this tab.
-          </p>
-          <ConnectButton />
+        <div className="ledger-sheet rise my-12 grid md:grid-cols-[1.15fr_.85fr]">
+          <div className="border-b border-border p-8 pl-12 sm:pl-16 md:border-r md:border-b-0">
+            <div className="folio-rule max-w-xs">Sealed portfolio preview</div>
+            <div className="mt-8 space-y-7" aria-hidden="true">
+              <div>
+                <div className="label text-muted-foreground">Prize balance</div>
+                <div className="hatch veil-drift mt-3 h-12 w-52 rounded-sm border border-border" />
+              </div>
+              {["cUSDT vault position", "cUSDC vault position", "cWETH vault position"].map((label) => (
+                <div key={label} className="flex items-center justify-between gap-6 border-t border-border pt-4">
+                  <span className="font-mono text-sm">{label}</span>
+                  <span className="hatch veil-drift h-5 w-24 rounded-xs border border-border" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col items-start justify-center p-8 sm:p-10">
+            <span className="seal-stamp size-16">Wallet<br />Seal</span>
+            <h2 className="mt-6 text-3xl font-semibold">Connect to open your folio.</h2>
+            <p className="mt-3 max-w-sm text-muted-foreground">
+              Nothing here is fetched from a server. Your wallet signature opens ciphertext locally, in this tab.
+            </p>
+            <div className="mt-6"><ConnectButton /></div>
+          </div>
         </div>
       ) : !position.hasPermit ? (
-        <div className="rise mt-12 max-w-2xl rounded-lg border border-border bg-card p-10">
+        <div className="ledger-sheet rise mt-12 max-w-2xl p-10 pl-14 sm:pl-20">
           <KeyRound className="size-6 text-primary" />
           <h2 className="mt-5 text-3xl font-semibold">Unseal your balances</h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -51,13 +69,16 @@ export function Account() {
           >
             {position.granting ? "Waiting for signature…" : "Sign the permit"}
           </Button>
-          <div className="hatch veil-drift mt-10 h-16 rounded-sm border border-border" />
+          <div className="mt-10 flex items-center gap-4 border-t border-border pt-6">
+            <span className="seal-stamp size-14 shrink-0">EIP<br />712</span>
+            <p className="font-mono text-xs leading-relaxed text-muted-foreground">The signed permit stays in this browser. It never becomes a public transaction.</p>
+          </div>
         </div>
       ) : (
         <div className="grid gap-12 py-12 lg:grid-cols-[1.15fr_1fr]">
           <div className="rise space-y-8">
             {position.won && (
-              <section className="relative overflow-hidden rounded-lg border-2 border-primary bg-card p-8">
+              <section className="ledger-sheet relative border-2 border-primary p-8 pl-14 sm:pl-20">
                 <PartyPopper className="size-6 text-primary" />
                 <h2 className="mt-4 text-3xl font-semibold">You took the last prize.</h2>
                 <p className="mt-3 max-w-md leading-relaxed text-muted-foreground">
@@ -67,7 +88,7 @@ export function Account() {
               </section>
             )}
 
-            <section className="rounded-lg border border-border bg-card p-8">
+            <section className="ledger-sheet p-8 pl-14 sm:pl-20">
               <div className="flex items-baseline justify-between gap-4">
                 <div className="label text-muted-foreground">Prize balance</div>
                 <Gift className="size-5 text-muted-foreground" />
@@ -97,11 +118,11 @@ export function Account() {
               </Button>
             </section>
 
-            <section className="rounded-lg border border-border bg-card p-8">
+            <section className="ledger-sheet p-8 pl-14 sm:pl-20">
               <div className="label text-muted-foreground">Saved across the vaults</div>
-              <ul className="mt-5 space-y-px bg-border">
+              <ul className="mt-5 border-y border-border">
                 {position.positions.map(({ meta, balance, balanceHandle, walletBalance, walletBalanceHandle }) => (
-                  <li key={meta.vault} className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-card py-4">
+                  <li key={meta.vault} className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-border py-4 first:border-t-0">
                     <span className="w-16 font-mono text-sm">{meta.symbol}</span>
                     <div className="min-w-32 flex-1">
                       <div className="label text-muted-foreground">In the vault</div>
@@ -143,7 +164,7 @@ export function Account() {
           </div>
 
           <aside className="rise space-y-8" style={{ animationDelay: "120ms" }}>
-            <section className="rounded-lg border border-border p-7">
+            <section className="ledger-inset p-7">
               <div className="label text-primary">What the chain actually stores</div>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 These are the ciphertext handles behind the numbers on the left. Anyone can read them from the
@@ -158,7 +179,7 @@ export function Account() {
               </dl>
             </section>
 
-            <section className="rounded-lg border border-border p-7">
+            <section className="border-t-2 border-primary pt-7">
               <div className="label text-muted-foreground">Addresses</div>
               <dl className="mt-4 space-y-4 text-sm">
                 <Row label="You" value={address} href={`https://sepolia.etherscan.io/address/${address}`} />
@@ -188,7 +209,7 @@ function Handle({ label, value }: { label: string; value?: `0x${string}` }) {
   return (
     <div>
       <dt className="font-mono text-xs text-muted-foreground">{label}</dt>
-      <dd className="mt-1.5 rounded-sm border border-border bg-card px-3 py-2 font-mono text-[11px] leading-relaxed break-all">
+      <dd className="hatch mt-1.5 rounded-sm border border-border bg-card px-3 py-2 font-mono text-[11px] leading-relaxed break-all">
         {value ?? "—"}
       </dd>
     </div>

@@ -20,7 +20,7 @@ export function AmountField({
       <label htmlFor={id} className="label block text-muted-foreground">
         {label}
       </label>
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-sm border border-border bg-background/75 shadow-[inset_3px_0_0_var(--paper-margin)]">
         <Input
           id={id}
           type="number"
@@ -29,7 +29,7 @@ export function AmountField({
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
-          className="h-14 pr-24 font-mono text-2xl tabular md:text-2xl"
+          className="h-16 border-0 bg-transparent pr-24 pl-5 font-mono text-2xl shadow-none tabular focus-visible:ring-0 md:text-2xl"
         />
         <span className="label pointer-events-none absolute inset-y-0 right-4 flex items-center text-muted-foreground">
           cUSDT
@@ -42,7 +42,7 @@ export function AmountField({
             type="button"
             disabled={disabled}
             onClick={() => onChange(String(preset))}
-            className="label rounded-full border border-border px-3 py-1.5 text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
+            className="label border-b border-border px-1 py-1.5 text-muted-foreground transition-colors hover:border-primary hover:text-primary disabled:opacity-50"
           >
             {preset.toLocaleString()}
           </button>

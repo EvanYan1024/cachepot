@@ -59,13 +59,12 @@ export function Landing() {
 
   return (
     <>
-      <section className="relative grid gap-12 py-16 md:grid-cols-[1.15fr_1fr] md:items-center md:py-24">
+      <section className="relative grid gap-12 py-14 md:grid-cols-[1.12fr_.88fr] md:items-center md:py-24">
         <PotMark className="pointer-events-none absolute -top-10 -left-24 -z-10 size-[26rem] rotate-12 text-primary/[0.055] md:-left-40 md:size-[34rem]" />
 
         <div className="rise">
-          <div className="label inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-primary" />
-            No-loss lottery · Zama FHEVM
+          <div className="folio-rule max-w-sm text-primary">
+            Record 001 · Zama FHEVM
           </div>
           <h1 className="mt-6 text-[2.75rem] leading-[1.02] font-semibold sm:text-6xl">
             Anyone can audit the draw.
@@ -88,10 +87,16 @@ export function Landing() {
           </div>
         </div>
 
-        <div className="rise rounded-lg border border-border bg-card shadow-[0_1px_0_var(--border),0_18px_40px_-32px_rgb(0_0_0/0.4)]" style={{ animationDelay: "120ms" }}>
-          <div className="hatch veil-drift h-9 rounded-t-lg border-b border-border bg-muted/40" />
-          <div className="px-7 py-8">
-            <div className="label text-muted-foreground">Prize this round</div>
+        <div className="ledger-sheet rise" style={{ animationDelay: "120ms" }}>
+          <div className="flex items-start justify-between gap-5 border-b border-border bg-secondary/55 px-7 py-5 pl-14 sm:pl-16">
+            <div>
+              <div className="label text-muted-foreground">Public prize ledger</div>
+              <div className="mt-1 font-mono text-xs text-muted-foreground">ROUND / {round.roundId?.toString() ?? "—"}</div>
+            </div>
+            <span className="seal-stamp size-16 shrink-0">Public<br />Audit</span>
+          </div>
+          <div className="px-7 py-8 pl-14 sm:pl-16">
+            <div className="label text-muted-foreground">Prize reserve · disclosed value</div>
             <PrizeAmount
               amount={prize.data}
               unavailable={prize.isError || wrongNetwork}
@@ -125,7 +130,7 @@ export function Landing() {
           A confidential dApp is only credible if it says exactly what leaks. Here is ours.
         </p>
 
-        <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-2">
+        <div className="ledger-sheet mt-10 grid md:grid-cols-2">
           <Column
             icon={<Eye className="size-4" />}
             title="Public on-chain"
@@ -146,12 +151,12 @@ export function Landing() {
       <section className="border-t border-border py-16">
         <div className="label text-primary">Mechanics</div>
         <h2 className="mt-3 max-w-lg text-3xl font-semibold sm:text-4xl">Four steps, none of which reveal you.</h2>
-        <ol className="mt-10 grid gap-px bg-border md:grid-cols-4">
+        <ol className="ledger-sheet mt-10">
           {STEPS.map((step) => (
-            <li key={step.n} className="bg-background p-6">
+            <li key={step.n} className="ledger-row gap-5 px-6 py-7 pl-11 sm:grid-cols-[4rem_.65fr_1.35fr] sm:items-baseline sm:pl-16 md:px-8 md:pl-20">
               <div className="numeral text-4xl text-primary/70">{step.n}</div>
-              <h3 className="mt-4 text-xl font-semibold">{step.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+              <h3 className="text-xl font-semibold">{step.title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{step.body}</p>
             </li>
           ))}
         </ol>
@@ -171,7 +176,7 @@ export function Landing() {
               Read the draw algorithm
             </Button>
           </div>
-          <pre className="overflow-x-auto rounded-lg border border-border bg-card p-6 font-mono text-[13px] leading-relaxed">
+          <pre className="ledger-inset overflow-x-auto border-l-4 border-l-primary p-6 font-mono text-[13px] leading-relaxed">
             <code>
               <span className="text-muted-foreground">{"// one round, entirely in ciphertext"}</span>
               {"\n"}rand     = FHE.randEuint64();{"\n"}
@@ -188,7 +193,7 @@ export function Landing() {
       </section>
 
       <section className="border-t border-border py-16">
-        <div className="flex flex-col items-start gap-6 rounded-lg border border-border bg-card p-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="ledger-sheet flex flex-col items-start gap-6 p-8 pl-12 sm:flex-row sm:items-center sm:justify-between sm:p-10 sm:pl-16">
           <div>
             <h2 className="text-3xl font-semibold">Put something in the pot.</h2>
             <p className="mt-2 text-muted-foreground">Test tokens are one click away. Withdraw whenever you like.</p>
@@ -226,7 +231,7 @@ function Column({
   tone: "plain" | "sealed";
 }) {
   return (
-    <div className="bg-background p-7">
+    <div className="border-b border-border bg-card/55 p-7 pl-12 last:border-b-0 md:border-r md:border-b-0 md:pl-16 md:last:border-r-0">
       <div className="flex items-center gap-2">
         <span className={tone === "sealed" ? "text-primary" : "text-muted-foreground"}>{icon}</span>
         <h3 className="text-xl font-semibold">{title}</h3>

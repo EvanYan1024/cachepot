@@ -77,17 +77,37 @@ export function Prize() {
         }
       />
 
-      <div className="grid gap-12 py-12 lg:grid-cols-[1.15fr_1fr]">
+      <section className="my-8 grid overflow-hidden rounded-sm border border-border bg-card sm:grid-cols-3">
+        {[
+          { n: "01", label: "Accrue", detail: round.drawing ? "Ledger closed" : "TWAB window open", active: !round.drawing },
+          { n: "02", label: "Scan", detail: round.drawing ? `${finished}/${funded.length} vaults` : "Encrypted target", active: round.drawing },
+          { n: "03", label: "Credit", detail: "Winner remains sealed", active: false },
+        ].map((phase) => (
+          <div key={phase.n} className={`flex items-center gap-4 border-b border-border px-5 py-4 last:border-b-0 sm:border-r sm:border-b-0 sm:last:border-r-0 ${phase.active ? "bg-primary text-primary-foreground" : ""}`}>
+            <span className={`numeral text-3xl ${phase.active ? "text-primary-foreground/70" : "text-primary/55"}`}>{phase.n}</span>
+            <div>
+              <div className="label">{phase.label}</div>
+              <div className={`mt-1 font-mono text-xs ${phase.active ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{phase.detail}</div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <div className="grid gap-12 py-6 lg:grid-cols-[1.15fr_1fr]">
         <div className="rise space-y-10">
-          <section className="rounded-lg border border-border bg-card">
-            <div className="hatch veil-drift h-9 rounded-t-lg border-b border-border bg-muted/40" />
-            <div className="p-7">
+          <section className="ledger-sheet">
+            <div className="p-7 pl-12 sm:pl-16">
+              <div className="flex items-start justify-between gap-4">
+                <div>
               <div className="label text-muted-foreground">Prize reserve</div>
               <PrizeAmount
                 amount={prize.data}
                 unavailable={prize.isError || wrongNetwork}
                 className="mt-2 text-6xl sm:text-7xl"
               />
+                </div>
+                <span className="seal-stamp size-16 shrink-0">Public<br />Value</span>
+              </div>
               <p className="mt-3 max-w-md text-sm text-muted-foreground">
                 Stored encrypted, but marked publicly decryptable on-chain — the reserve is the single value the
                 protocol deliberately reveals, so savers can see what they are playing for. If a round pays nobody, it
@@ -117,7 +137,7 @@ export function Prize() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-border p-7">
+          <section className="border-l-2 border-primary pl-6 sm:pl-7">
             <div className="flex items-baseline justify-between gap-4">
               <div>
                 <div className="label text-primary">Permissionless</div>
@@ -188,7 +208,7 @@ export function Prize() {
             )}
           </section>
 
-          <section className="rounded-lg border border-border bg-card p-7">
+          <section className="ledger-inset border-dashed p-7">
             <div className="flex items-baseline justify-between gap-4">
               <div>
                 <div className="label text-primary">Sponsor</div>
@@ -242,16 +262,16 @@ export function Prize() {
         </div>
 
         <aside className="rise space-y-8" style={{ animationDelay: "120ms" }}>
-          <section>
+          <section className="ledger-sheet p-6 pl-12 sm:pl-16">
             <div className="label text-primary">The draw, step by step</div>
-            <ol className="mt-5 space-y-px bg-border">
+            <ol className="mt-5">
               {ALGORITHM.map((step, index) => (
-                <li key={step.title} className="bg-background py-6 first:pt-0">
+                <li key={step.title} className="border-t border-border py-6 first:border-t-0 first:pt-0">
                   <div className="flex items-baseline gap-3">
                     <span className="numeral text-2xl text-primary/70">{String(index + 1).padStart(2, "0")}</span>
                     <h3 className="text-lg font-semibold">{step.title}</h3>
                   </div>
-                  <code className="mt-3 block overflow-x-auto rounded-sm border border-border bg-card px-3 py-2 font-mono text-xs">
+                  <code className="mt-3 block overflow-x-auto border-l-2 border-primary bg-background/70 px-3 py-2 font-mono text-xs">
                     {step.code}
                   </code>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
@@ -260,7 +280,7 @@ export function Prize() {
             </ol>
           </section>
 
-          <section className="rounded-lg border border-border p-6">
+          <section className="ledger-inset p-6">
             <div className="label text-muted-foreground">Measured cost</div>
             <p className="mt-2 text-sm text-muted-foreground">
               HCU is the FHEVM's meter for homomorphic work — gas for ciphertext. These are measured, not estimated,
@@ -281,7 +301,7 @@ export function Prize() {
             </table>
           </section>
 
-          <section className="rounded-lg border border-border p-6">
+          <section className="border-t border-border pt-6">
             <div className="label text-muted-foreground">Liveness</div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               A vault that never finishes its scan — a junk registration, or one with no savers — can be skipped by

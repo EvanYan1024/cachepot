@@ -1,0 +1,262 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@import "@fontsource-variable/fraunces/full.css";
+@import "@fontsource-variable/archivo/index.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-display: 'Fraunces Variable', Georgia, serif;
+    --font-heading: var(--font-display);
+    --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    --color-seal: var(--seal);
+    --color-seal-foreground: var(--seal-foreground);
+
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.6);
+    --radius-2xl: calc(var(--radius) * 2.4);
+    --radius-3xl: calc(var(--radius) * 3.2);
+    --radius-4xl: calc(var(--radius) * 4);
+}
+
+/* Kiln palette: bone paper, warm ink, terracotta clay, one kiln-yellow seal. */
+:root {
+    --radius: 0.25rem;
+
+    --background: oklch(0.968 0.012 84);
+    --foreground: oklch(0.245 0.022 52);
+    --card: oklch(0.992 0.006 86);
+    --card-foreground: oklch(0.245 0.022 52);
+    --popover: oklch(0.992 0.006 86);
+    --popover-foreground: oklch(0.245 0.022 52);
+    --primary: oklch(0.545 0.145 40);
+    --primary-foreground: oklch(0.985 0.008 85);
+    --secondary: oklch(0.925 0.016 78);
+    --secondary-foreground: oklch(0.30 0.022 50);
+    --muted: oklch(0.934 0.014 80);
+    --muted-foreground: oklch(0.505 0.022 55);
+    --accent: oklch(0.912 0.028 78);
+    --accent-foreground: oklch(0.28 0.028 50);
+    --destructive: oklch(0.552 0.196 27);
+    --border: oklch(0.868 0.020 72);
+    --input: oklch(0.868 0.020 72);
+    --ring: oklch(0.545 0.145 40);
+    --seal: oklch(0.828 0.162 88);
+    --seal-foreground: oklch(0.28 0.052 72);
+    --chart-1: oklch(0.545 0.145 40);
+    --chart-2: oklch(0.828 0.162 88);
+    --chart-3: oklch(0.505 0.022 55);
+    --chart-4: oklch(0.686 0.098 45);
+    --chart-5: oklch(0.35 0.028 52);
+    --sidebar: oklch(0.955 0.014 82);
+    --sidebar-foreground: oklch(0.245 0.022 52);
+    --sidebar-primary: oklch(0.545 0.145 40);
+    --sidebar-primary-foreground: oklch(0.985 0.008 85);
+    --sidebar-accent: oklch(0.912 0.028 78);
+    --sidebar-accent-foreground: oklch(0.28 0.028 50);
+    --sidebar-border: oklch(0.868 0.020 72);
+    --sidebar-ring: oklch(0.545 0.145 40);
+}
+
+.dark {
+    --background: oklch(0.176 0.014 48);
+    --foreground: oklch(0.936 0.014 80);
+    --card: oklch(0.216 0.016 48);
+    --card-foreground: oklch(0.936 0.014 80);
+    --popover: oklch(0.216 0.016 48);
+    --popover-foreground: oklch(0.936 0.014 80);
+    --primary: oklch(0.688 0.142 45);
+    --primary-foreground: oklch(0.185 0.022 45);
+    --secondary: oklch(0.278 0.018 50);
+    --secondary-foreground: oklch(0.936 0.014 80);
+    --muted: oklch(0.264 0.016 50);
+    --muted-foreground: oklch(0.686 0.020 65);
+    --accent: oklch(0.302 0.026 55);
+    --accent-foreground: oklch(0.936 0.014 80);
+    --destructive: oklch(0.652 0.182 25);
+    --border: oklch(0.342 0.020 55);
+    --input: oklch(0.342 0.020 55);
+    --ring: oklch(0.688 0.142 45);
+    --seal: oklch(0.852 0.158 88);
+    --seal-foreground: oklch(0.22 0.042 70);
+    --chart-1: oklch(0.688 0.142 45);
+    --chart-2: oklch(0.852 0.158 88);
+    --chart-3: oklch(0.686 0.020 65);
+    --chart-4: oklch(0.552 0.088 45);
+    --chart-5: oklch(0.85 0.014 80);
+    --sidebar: oklch(0.196 0.015 48);
+    --sidebar-foreground: oklch(0.936 0.014 80);
+    --sidebar-primary: oklch(0.688 0.142 45);
+    --sidebar-primary-foreground: oklch(0.185 0.022 45);
+    --sidebar-accent: oklch(0.302 0.026 55);
+    --sidebar-accent-foreground: oklch(0.936 0.014 80);
+    --sidebar-border: oklch(0.342 0.020 55);
+    --sidebar-ring: oklch(0.688 0.142 45);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    html {
+        @apply font-sans;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+
+    /* Fraunces WONK swaps in the characterful alternates; SOFT rounds the terminals. */
+    h1, h2, h3 {
+        font-family: var(--font-display);
+        font-variation-settings: "SOFT" 28, "WONK" 1;
+        letter-spacing: -0.015em;
+    }
+
+    ::selection {
+        background: var(--seal);
+        color: var(--seal-foreground);
+    }
+}
+
+/* Micro-label: the editorial spine of the layout. */
+@utility label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+/* Display numeral: Fraunces at optical display size, tabular. */
+@utility numeral {
+    font-family: var(--font-display);
+    font-variation-settings: "opsz" 100, "SOFT" 20, "WONK" 1;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.03em;
+}
+
+@utility tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Ciphertext hatching — the visual signature of an unrevealed value. */
+@utility hatch {
+    background-image: repeating-linear-gradient(
+        -45deg,
+        color-mix(in oklab, var(--foreground) 24%, transparent) 0 1.5px,
+        transparent 1.5px 7px
+    );
+    background-size: 200% 100%;
+}
+
+@utility grain-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0.42;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.5'/></svg>");
+}
+
+.dark .grain-layer {
+    opacity: 0.14;
+    mix-blend-mode: screen;
+}
+
+@keyframes veil-drift {
+    to {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes unseal {
+    from {
+        clip-path: inset(0 100% 0 0);
+        filter: blur(5px);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+        filter: blur(0);
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@utility veil-drift {
+    animation: veil-drift 9s linear infinite;
+}
+
+@utility unseal {
+    animation: unseal 0.7s cubic-bezier(0.22, 0.72, 0.15, 1) both;
+}
+
+@utility rise {
+    animation: rise 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* RainbowKit inherits the app's typography instead of shipping its own. */
+[data-rk] {
+    --rk-fonts-body: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

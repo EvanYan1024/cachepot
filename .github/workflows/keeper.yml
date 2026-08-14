@@ -1,0 +1,37 @@
+name: Keeper
+
+# Advances the CachePot draw when nobody else does: closes due rounds, scans every
+# funded vault, and skips stalled ones after the grace period. Every call the script
+# makes is permissionless — this is a convenience bot, not a privileged operator.
+on:
+  schedule:
+    - cron: "*/5 * * * *" # best effort; GitHub may delay a few minutes under load
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keeper
+  cancel-in-progress: false
+
+jobs:
+  keeper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: "false"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: contracts/package-lock.json
+      - run: npm ci
+      - run: npx hardhat run scripts/keeper.ts --network sepolia
+        env:
+          HARDHAT_VAR_DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}

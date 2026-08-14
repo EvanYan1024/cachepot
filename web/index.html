@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M6.5 11h19l-2.1 15.2a2.4 2.4 0 0 1-2.4 2.1H11a2.4 2.4 0 0 1-2.4-2.1Z' fill='none' stroke='%23b1522c' stroke-width='2.4'/><rect x='4' y='6.2' width='24' height='4.8' rx='1.2' fill='none' stroke='%23b1522c' stroke-width='2.4'/><circle cx='16' cy='3.4' r='2.1' fill='%23e8b23a'/></svg>"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CachePot — a no-loss prize savings pool where every balance stays encrypted on Zama's FHEVM. Anyone can audit the draw; nobody can read the ledger."
+    />
+    <title>CachePot — Confidential Prize Savings</title>
+    <script>
+      // paint the stored theme before first paint; light is the default
+      try {
+        if (localStorage.theme === "dark") document.documentElement.classList.add("dark");
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

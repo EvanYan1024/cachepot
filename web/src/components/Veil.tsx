@@ -11,8 +11,8 @@ type VeilProps = {
   children: ReactNode;
 };
 
-/// A value that lives on-chain as ciphertext. Sealed, it shows its handle under
-/// a hatch; unsealed, it wipes open. Same footprint either way so nothing jumps.
+/// A value that lives on-chain as ciphertext. Sealed values use a consistent
+/// privacy placeholder; technical handles live in progressive disclosure.
 export function Veil({ sealed, loading, handle, className, children }: VeilProps) {
   if (sealed || loading) {
     return (
@@ -20,14 +20,13 @@ export function Veil({ sealed, loading, handle, className, children }: VeilProps
         role="img"
         aria-label={loading ? "Decrypting" : "Encrypted value"}
         className={cn(
-          "relative inline-flex select-none items-center overflow-hidden rounded-sm border border-border bg-muted/50 align-middle",
+          "relative inline-flex select-none items-center overflow-hidden rounded-sm border border-border bg-accent align-middle",
           loading && "animate-pulse",
           className,
         )}
       >
-        <span className="hatch veil-drift absolute inset-0" />
-        <span className="relative truncate px-2 font-mono text-[10px] leading-none text-muted-foreground/60">
-          {handle ? handle.slice(2, 30) : "encrypted"}
+        <span className="relative truncate px-2 font-mono text-xs leading-none tracking-[0.16em] text-muted-foreground">
+          {loading ? "······" : "••••••"}
         </span>
       </span>
     );

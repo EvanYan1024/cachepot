@@ -15,7 +15,7 @@ import App from "./App";
 
 const queryClient = new QueryClient();
 
-const RK = { accentColor: "#b1522c", accentColorForeground: "#fbf6ee", borderRadius: "small" } as const;
+const RK = { accentColor: "#ffd91a", accentColorForeground: "#1d1d1b", borderRadius: "large" } as const;
 
 function WalletTheme({ children }: { children: ReactNode }) {
   const { resolvedTheme } = useTheme();

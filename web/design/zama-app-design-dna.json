@@ -1,0 +1,411 @@
+{
+  "meta": {
+    "name": "Zama Soft Product Utility DNA",
+    "description": "A CachePot adaptation of Zama's soft utility language. It uses a floating top menu, a full marketing landing page, high-radius surfaces, focused task layouts and image-led onboarding.",
+    "source_references": [
+      "https://app.zama.org/",
+      "https://app.zama.org/earn",
+      "https://www.zama.org/post/zama-protocol-update-new-sdk-delegated-decryption-developer-tooling-and-protocol-apps"
+    ],
+    "created_at": "2026-08-14"
+  },
+  "design_system": {
+    "color": {
+      "palette_type": "monochromatic neutral system with one warm high-chroma accent",
+      "primary": {
+        "hex": "#FFD91A",
+        "role": "active navigation, token identity and confidential-state emphasis"
+      },
+      "secondary": {
+        "hex": "#242422",
+        "role": "primary text and dimensional financial action controls"
+      },
+      "accent": {
+        "hex": "#F1F1EE",
+        "role": "quiet workspace surfaces, selected rows and grouped utility areas"
+      },
+      "neutral": {
+        "scale": {
+          "0": "#FFFFFF",
+          "50": "#FAFAF8",
+          "100": "#EEEEEF",
+          "200": "#E6E6E7",
+          "300": "#D2D2D1",
+          "400": "#A8A8A1",
+          "500": "#777772",
+          "600": "#575753",
+          "700": "#363634",
+          "800": "#20201F",
+          "900": "#0A0A0A"
+        },
+        "usage": "white and off-white dominate; gray separates data layers; near-black carries nearly all typography"
+      },
+      "semantic": {
+        "success": "#237A52",
+        "warning": "#B56700",
+        "error": "#C33D32",
+        "info": "#315FC7"
+      },
+      "surface": {
+        "background": "#EEEEEF",
+        "card": "#FBFBFA",
+        "elevated": "#FFFFFF"
+      },
+      "contrast_strategy": "near-black on pale neutral surfaces; yellow is sparse and never used for long text"
+    },
+    "typography": {
+      "type_scale": {
+        "display": {
+          "size": "56px",
+          "weight": "400",
+          "line_height": "1.0",
+          "tracking": "-0.025em"
+        },
+        "heading_1": {
+          "size": "40px",
+          "weight": "500",
+          "line_height": "1.08",
+          "tracking": "-0.02em"
+        },
+        "heading_2": {
+          "size": "28px",
+          "weight": "500",
+          "line_height": "1.15",
+          "tracking": "-0.015em"
+        },
+        "heading_3": {
+          "size": "20px",
+          "weight": "500",
+          "line_height": "1.25",
+          "tracking": "-0.01em"
+        },
+        "body": {
+          "size": "16px",
+          "weight": "400",
+          "line_height": "1.6",
+          "tracking": "0"
+        },
+        "body_small": {
+          "size": "14px",
+          "weight": "400",
+          "line_height": "1.45",
+          "tracking": "0"
+        },
+        "caption": {
+          "size": "12px",
+          "weight": "400",
+          "line_height": "1.35",
+          "tracking": "0.01em"
+        },
+        "overline": {
+          "size": "11px",
+          "weight": "500",
+          "line_height": "1.2",
+          "tracking": "0.08em"
+        }
+      },
+      "font_families": {
+        "heading": "Telegraf Variable, Arial, sans-serif",
+        "body": "Telegraf, Arial, sans-serif",
+        "mono": "IBM Plex Mono, ui-monospace, monospace"
+      },
+      "font_style_notes": "neutral neo-grotesk product typography; regular weight does most of the work; hierarchy comes from scale and space rather than font-family contrast"
+    },
+    "spacing": {
+      "base_unit": "4px",
+      "scale": [
+        "4px",
+        "8px",
+        "12px",
+        "16px",
+        "24px",
+        "32px",
+        "48px",
+        "64px",
+        "96px"
+      ],
+      "content_density": "low-density application shell with focused transactional interiors",
+      "section_rhythm": "24–32px inside workspaces, 48–64px between major product sections, 96px only for marketing moments"
+    },
+    "layout": {
+      "grid_system": "floating top navigation shell plus a centered fluid product workspace",
+      "max_content_width": "1240px",
+      "columns": "12-column marketing canvas; primary application tasks use 768–896px centered columns",
+      "gutter": "24px desktop, 16px tablet and mobile",
+      "breakpoints": {
+        "mobile": "0–639px",
+        "tablet": "640–1023px",
+        "desktop": "1024–1439px",
+        "wide": "1440px+"
+      },
+      "alignment_tendency": "centered statements and narrow task surfaces; data lists remain strictly aligned inside soft containers"
+    },
+    "shape": {
+      "border_radius": {
+        "small": "8px",
+        "medium": "16px",
+        "large": "24–28px",
+        "pill": "999px"
+      },
+      "border_usage": "translucent 1px edge highlights clarify soft glass-like surfaces",
+      "divider_style": "low-contrast neutral dividers contained within rounded surfaces"
+    },
+    "elevation": {
+      "shadow_style": "soft directional depth with a consistent upper-left light source",
+      "levels": {
+        "low": "0 8px 22px rgba(20,20,18,0.05)",
+        "medium": "0 18px 40px -24px rgba(20,20,18,0.35)",
+        "high": "0 28px 70px -36px rgba(28,28,25,0.22)"
+      },
+      "depth_cues": "large radius, inner highlight, subtle tonal gradient and layered soft shadow"
+    },
+    "iconography": {
+      "style": "simple outlined utility symbols with occasional solid brand marks",
+      "stroke_weight": "1.5px",
+      "size_scale": [
+        "16px",
+        "20px",
+        "24px"
+      ],
+      "preferred_set": "Lucide-compatible outline icons plus custom Zama/token marks"
+    },
+    "motion": {
+      "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      "duration_scale": {
+        "micro": "140ms",
+        "normal": "220ms",
+        "macro": "360ms"
+      },
+      "entrance_pattern": "short opacity transition with 4–8px vertical movement for overlays only",
+      "exit_pattern": "fast fade with no decorative travel",
+      "philosophy": "minimal functional motion that confirms state without competing with financial data"
+    },
+    "components": {
+      "button_style": "40–48px controls with 12–16px radius; dimensional ink primary, soft white secondary and yellow used as signal rather than default fill",
+      "input_style": "96px soft elevated field with 40–48px numeric value and inset token selector",
+      "card_style": "18–28px rounded neutral surface with inner edge highlight, low-chroma gradient and soft directional shadow",
+      "navigation_pattern": "inset sticky top menu with a pale-yellow active item; mobile uses a top toggle and inline floating drawer",
+      "modal_style": "centered or side-sheet white surface with explicit title, concise explanation and hard action hierarchy",
+      "list_style": "comfortable data rows with token identity first, aligned metadata and lifted row actions",
+      "component_notes": "privacy state is expressed with labels, icons and reveal controls rather than ornamental encryption textures"
+    }
+  },
+  "design_style": {
+    "aesthetic": {
+      "mood": [
+        "precise",
+        "quiet",
+        "institutional",
+        "modern",
+        "confident"
+      ],
+      "visual_metaphor": "a secure financial workstation where confidential assets behave like familiar banking primitives",
+      "era_influence": "contemporary Swiss product design with light industrial and terminal influences",
+      "genre": "minimal institutional fintech / Web3 utility",
+      "personality_traits": [
+        "technically credible",
+        "restrained",
+        "direct",
+        "meticulous"
+      ],
+      "adjectives": [
+        "soft",
+        "floating",
+        "high-radius",
+        "task-focused",
+        "image-led"
+      ]
+    },
+    "visual_language": {
+      "complexity": "moderate information complexity with minimal visual complexity",
+      "ornamentation": "restrained 3D product imagery, glass refraction and yellow edge light are concentrated in onboarding surfaces",
+      "whitespace_usage": "generous around page-level hierarchy and primary tasks, comfortable inside controls and lists",
+      "visual_weight_distribution": "the floating top menu, centered statement and image-led product surface form three distinct depth planes",
+      "focal_strategy": "one dominant task per screen, supported by quiet secondary data",
+      "contrast_level": "high text contrast and low surface contrast",
+      "texture_usage": "soft studio materiality through translucent glass, subtle surface gradients and directional shadows"
+    },
+    "composition": {
+      "hierarchy_method": "scale contrast, spatial isolation, surface elevation and sparse accent color",
+      "balance_type": "asymmetric product workspace",
+      "flow_direction": "top navigation to landing statement or page title, then primary operation and supporting data",
+      "grouping_strategy": "large-radius floating panels; related controls stay within one focused transaction surface",
+      "negative_space_role": "separates tasks and lowers perceived cryptographic complexity"
+    },
+    "imagery": {
+      "photo_treatment": "bright high-key studio renders with cool neutral grading and controlled yellow refraction",
+      "illustration_style": "premium translucent 3D product objects supported by sparse utility iconography",
+      "graphic_elements": "token marks, privacy symbols, glass vessels, metallic components and soft shadows",
+      "pattern_usage": "none in operational UI; occasional brand repetition is acceptable in marketing surfaces",
+      "image_shape": "large 20–28px rounded crops integrated into soft product cards"
+    },
+    "interaction_feel": {
+      "feedback_style": "immediate state label, disabled state, progress message and transaction confirmation",
+      "hover_behavior": "subtle gray surface change or black/yellow inversion",
+      "transition_personality": "snappy and understated",
+      "loading_style": "plain initialization copy, slim progress indicators and low-motion skeletons",
+      "microinteraction_density": "low"
+    },
+    "brand_voice_in_ui": {
+      "tone": "clear, factual and privacy-literate",
+      "formality": "professional without legalistic stiffness",
+      "cta_style": "direct imperative verbs such as Shield, Unshield, Send, Deposit and Connect",
+      "empty_state_approach": "explain why data is unavailable, then offer one concrete next action",
+      "error_tone": "specific, calm and recoverable; explain network or confidentiality implications when relevant"
+    }
+  },
+  "visual_effects": {
+    "overview": {
+      "effect_intensity": "moderate-soft",
+      "performance_tier": "lightweight",
+      "fallback_strategy": "remove transitions and keep all state changes explicit in text and color",
+      "primary_technology": "CSS only"
+    },
+    "background_effects": {
+      "type": "soft-radial-depth",
+      "description": "cool pale-neutral workspace with a restrained upper-right ambient light field",
+      "technology": "CSS radial and tonal gradients",
+      "params": {
+        "color_palette": [
+          "#EEEEEF",
+          "#FBFBFA"
+        ],
+        "speed": "0",
+        "density": "0",
+        "opacity": "1",
+        "blend_mode": "normal"
+      }
+    },
+    "particle_systems": {
+      "enabled": false,
+      "type": "none",
+      "description": "no particles in the product interface",
+      "technology": "none",
+      "params": {
+        "count": 0,
+        "shape": "none",
+        "size_range": "0",
+        "movement_pattern": "none",
+        "color_behavior": "none",
+        "interaction": "none",
+        "spawn_area": "none"
+      }
+    },
+    "3d_elements": {
+      "enabled": true,
+      "type": "pre-rendered translucent product objects",
+      "description": "onboarding and dashboard cards use high-key glass and metal 3D campaign imagery",
+      "technology": "optimized raster image assets",
+      "params": {
+        "renderer": "offline 3D render",
+        "lighting": "diffuse upper-left studio light",
+        "camera": "orthographic-like product composition",
+        "materials": "clear crystal, frosted glass, satin metal and translucent yellow polymer",
+        "geometry": "single branded privacy or token object per card",
+        "post_processing": [],
+        "interaction_model": "none"
+      }
+    },
+    "shader_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "no shader-driven product effects observed",
+      "technology": "none",
+      "params": {
+        "uniforms": {},
+        "vertex_manipulation": "none",
+        "fragment_output": "none",
+        "noise_type": "none",
+        "distortion": "none"
+      }
+    },
+    "scroll_effects": {
+      "parallax": {
+        "enabled": false,
+        "layers": "0",
+        "depth_range": "0",
+        "speed_curve": "none"
+      },
+      "scroll_triggered_animations": {
+        "enabled": false,
+        "trigger_points": "none in the product shell",
+        "animation_type": "none",
+        "scrub_behavior": "none"
+      },
+      "scroll_morphing": {
+        "enabled": false,
+        "description": "no scroll morphing"
+      }
+    },
+    "text_effects": {
+      "type": "none",
+      "description": "type remains static and readable",
+      "technology": "CSS typography",
+      "params": {
+        "split_strategy": "none",
+        "animation_per_unit": "none",
+        "stagger": "0ms",
+        "effect_style": "none"
+      }
+    },
+    "cursor_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "system cursor is retained",
+      "params": {
+        "shape": "system",
+        "size": "system",
+        "blend_mode": "normal",
+        "trail": "none",
+        "interaction_zone": "none"
+      }
+    },
+    "image_effects": {
+      "type": "soft product crop",
+      "description": "3D campaign renders are cropped into high-radius cards with a light tonal overlay",
+      "technology": "standard responsive images and SVG",
+      "params": {
+        "filter_pipeline": "none",
+        "hover_transform": "none",
+        "reveal_animation": "short opacity fade when lazy-loaded",
+        "distortion_type": "none"
+      }
+    },
+    "glassmorphism_neumorphism": {
+      "enabled": true,
+      "style": "soft-frosted-layers",
+      "params": {
+        "blur_radius": "8–12px for overlay labels only",
+        "transparency": "0.72–0.94",
+        "border_treatment": "translucent white edge highlight",
+        "shadow_type": "layered soft directional shadow with inset highlight",
+        "light_source_angle": "upper-left"
+      }
+    },
+    "canvas_drawings": {
+      "enabled": false,
+      "type": "none",
+      "description": "no canvas layer in the operational UI",
+      "technology": "none",
+      "params": {
+        "draw_method": "none",
+        "animation_loop": "none",
+        "color_scheme": "none",
+        "responsiveness": "none",
+        "interaction": "none"
+      }
+    },
+    "svg_animations": {
+      "enabled": false,
+      "type": "static utility icons",
+      "description": "SVG is used for logos and utility icons without visible path animation",
+      "params": {
+        "animation_method": "none",
+        "path_morphing": "none",
+        "stroke_animation": "none",
+        "filter_effects": "none"
+      }
+    },
+    "composite_notes": "The live Zama dashboard, Shield route and mobile Shield layout were inspected directly on 2026-08-14. The dominant identity is a floating large-radius shell, soft directional depth, focused transaction cards and high-key translucent 3D imagery. Yellow is a navigation and privacy signal; dimensional black controls carry primary financial actions."
+  }
+}

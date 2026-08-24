@@ -126,6 +126,14 @@ export function formatAmount(units: bigint, decimals: number = CONFIDENTIAL_DECI
   return `${whole.toLocaleString()}.${frac.toString().padStart(decimals, "0").replace(/0+$/, "")}`;
 }
 
+/// Locale-free counterpart of formatAmount, safe to feed back into parseAmount.
+export function formatAmountPlain(units: bigint, decimals: number = CONFIDENTIAL_DECIMALS): string {
+  const whole = units / 10n ** BigInt(decimals);
+  const frac = units % 10n ** BigInt(decimals);
+  if (frac === 0n) return whole.toString();
+  return `${whole}.${frac.toString().padStart(decimals, "0").replace(/0+$/, "")}`;
+}
+
 export function parseAmount(text: string, decimals: number = CONFIDENTIAL_DECIMALS): bigint {
   const [whole, frac = ""] = text.trim().split(".");
   const fracPadded = (frac + "0".repeat(decimals)).slice(0, decimals);

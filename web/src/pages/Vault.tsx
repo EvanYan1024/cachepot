@@ -6,7 +6,7 @@ import { AmountField } from "@/components/AmountField";
 import { PageHead } from "@/components/Layout";
 import { Veil } from "@/components/Veil";
 import { Button } from "@/components/ui/button";
-import { findVault, formatAmount, parseAmount, type VaultMeta } from "@/lib/contracts";
+import { findVault, formatAmount, formatAmountPlain, parseAmount, type VaultMeta } from "@/lib/contracts";
 import { useEarnStats, usePosition, useVaultActions, useWrongNetwork } from "@/hooks/usePool";
 import { useTx } from "@/hooks/useTx";
 
@@ -103,7 +103,15 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             </div>
 
             <div className="mt-8">
-              <AmountField id={`${mode}-amount`} label={mode === "deposit" ? "Amount to deposit" : "Amount to withdraw"} value={amount} onChange={setAmount} unit={meta.symbol} disabled={disabled} />
+              <AmountField
+                id={`${mode}-amount`}
+                label={mode === "deposit" ? "Amount to deposit" : "Amount to withdraw"}
+                value={amount}
+                onChange={setAmount}
+                unit={meta.symbol}
+                disabled={disabled}
+                max={available !== undefined && available > 0n ? formatAmountPlain(available) : undefined}
+              />
             </div>
 
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">

@@ -8,6 +8,7 @@ export function AmountField({
   presets = [10, 100, 1000],
   unit = "cUSDT",
   disabled,
+  max,
 }: {
   id: string;
   label: string;
@@ -16,6 +17,7 @@ export function AmountField({
   presets?: number[];
   unit?: string;
   disabled?: boolean;
+  max?: string; // full available balance; renders a Max chip when known
 }) {
   return (
     <div className="space-y-3">
@@ -47,6 +49,16 @@ export function AmountField({
             {preset.toLocaleString()}
           </button>
         ))}
+        {max !== undefined && (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(max)}
+            className="min-h-8 rounded-lg border border-foreground/25 bg-card/60 px-3 text-xs font-semibold transition-[background-color,border-color,color,transform] hover:bg-card active:translate-y-px disabled:opacity-50"
+          >
+            Max
+          </button>
+        )}
       </div>
     </div>
   );

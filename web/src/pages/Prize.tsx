@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 import { AmountField } from "@/components/AmountField";
 import { PageHead } from "@/components/Layout";
 import { PrizeAmount } from "@/components/PrizeAmount";
+import { TokenIcon } from "@/components/TokenIcon";
 import { Button } from "@/components/ui/button";
 import { VAULTS, parseAmount } from "@/lib/contracts";
 import { formatCountdown } from "@/hooks/useNow";
@@ -177,9 +178,7 @@ export function Prize() {
               {funded.map((entry) => (
                 <div key={entry.meta.vault} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
                   <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <span className="grid size-8 shrink-0 place-items-center bg-secondary font-mono text-xs font-semibold">
-                      {entry.meta.underlyingSymbol.slice(0, 1)}
-                    </span>
+                    <TokenIcon symbol={entry.meta.underlyingSymbol} className="size-8 shrink-0" />
                     <div className="min-w-0">
                       <div className="text-sm font-semibold">{entry.meta.symbol}</div>
                       <div className="mt-0.5 font-mono text-xs text-muted-foreground tabular">

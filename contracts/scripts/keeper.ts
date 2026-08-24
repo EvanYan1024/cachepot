@@ -94,6 +94,38 @@ async function main() {
       console.log(`still drawing; grace ends in ${closedAt + grace - BigInt(block!.timestamp)}s`);
     }
   }
+  // claim any finalized Earn deposit batches for vaults wired to a batcher; the
+  // claim is permissionless and lands cShares directly in the vault
+  const batcherAbi = [
+    "function currentBatchId() view returns (uint256)",
+    "function batchState(uint256) view returns (uint8)",
+    "function deposits(uint256, address) view returns (bytes32)",
+    "function claim(uint256, address)",
+  ];
+  const [signer] = await ethers.getSigners();
+  for (const vault of vaults) {
+    let batcherAddress: string;
+    try {
+      batcherAddress = await vault.depositBatcher();
+    } catch {
+      continue; // pre-earn deployment without the getter
+    }
+    if (batcherAddress === ethers.ZeroAddress) continue;
+    const address = await vault.getAddress();
+    const batcher = new ethers.Contract(batcherAddress, batcherAbi, signer);
+    const current = await batcher.currentBatchId();
+    for (let id = current > 12n ? current - 12n : 0n; id <= current; id++) {
+      if (Number(await batcher.batchState(id)) !== 2) continue;
+      if ((await batcher.deposits(id, address)) === ethers.ZeroHash) continue;
+      try {
+        await (await batcher.claim(id, address)).wait();
+        console.log(`claimed earn batch #${id} for vault ${address}`);
+      } catch {
+        // already claimed — gas estimation reverts before any spend
+      }
+    }
+  }
+
   console.log(`done: round ${await pool.roundId()} state=${await pool.state()}`);
 }
 

@@ -6,6 +6,11 @@ import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {IERC7984} from "@openzeppelin/confidential-contracts/interfaces/IERC7984.sol";
 import {CachePrizePool} from "./CachePrizePool.sol";
 
+/// @dev The two Zama Confidential Vault (Earn) batchers share this quit shape.
+interface IVaultBatcher {
+    function quit(uint256 batchId) external returns (bytes32);
+}
+
 /// @title CacheVault — one confidential asset, one encrypted TWAB ledger
 /// @notice Holds deposits of a single ERC7984 asset and picks that vault's local
 /// winner from an encrypted time-weighted average balance. It never learns whether
@@ -24,6 +29,14 @@ contract CacheVault is ZamaEthereumConfig {
 
     IERC7984 public immutable token;
     CachePrizePool public immutable pool;
+
+    // Optional Zama Earn (Confidential Vault) wiring — zero addresses disable it.
+    // The strategist can only move funds between this vault and the two official
+    // batchers, never to a wallet: it controls timing, not custody.
+    IERC7984 public immutable shareToken;
+    address public immutable depositBatcher;
+    address public immutable redeemBatcher;
+    address public immutable strategist;
 
     bool public drawing;
     uint256 public drawRound; // pool round currently being scanned
@@ -54,10 +67,23 @@ contract CacheVault is ZamaEthereumConfig {
     event Withdrawn(address indexed user);
     event DrawStarted(uint256 indexed roundId);
     event DrawAdvanced(uint256 indexed roundId, uint256 from, uint256 to);
+    event SweptToEarn(uint64 requested);
+    event RedeemedFromEarn(uint64 requested);
 
-    constructor(IERC7984 token_, CachePrizePool pool_) {
+    constructor(
+        IERC7984 token_,
+        CachePrizePool pool_,
+        IERC7984 shareToken_,
+        address depositBatcher_,
+        address redeemBatcher_,
+        address strategist_
+    ) {
         token = token_;
         pool = pool_;
+        shareToken = shareToken_;
+        depositBatcher = depositBatcher_;
+        redeemBatcher = redeemBatcher_;
+        strategist = strategist_;
         windowStart = block.timestamp;
         prevWindowStart = block.timestamp;
         _globalLastTouch = block.timestamp;
@@ -106,9 +132,12 @@ contract CacheVault is ZamaEthereumConfig {
         _settleUser(msg.sender);
         _settleGlobal();
 
-        // clamp to the user's ledger balance; the vault always holds at least the
-        // ledger total, so the token-side transfer cannot silently fail
+        // clamp to the user's ledger balance AND to what the vault actually holds —
+        // principal swept into Earn batches can leave the buffer short, and an
+        // unclamped ERC7984 transfer would silently send zero (C4) while the ledger
+        // still decremented. Withdrawals degrade to "what the buffer can pay now".
         euint64 sent = FHE.min(requested, _balance[msg.sender]);
+        sent = FHE.min(sent, token.confidentialBalanceOf(address(this)));
         FHE.allowTransient(sent, address(token));
         token.confidentialTransfer(msg.sender, sent);
 
@@ -118,6 +147,39 @@ contract CacheVault is ZamaEthereumConfig {
         FHE.allowThis(_totalBalance);
         FHE.allow(sent, msg.sender);
         emit Withdrawn(msg.sender);
+    }
+
+    // -------------------------------------------------------------------- earn
+
+    /// @notice Sends up to `amount` idle asset tokens into the Earn deposit batcher;
+    /// the resulting cShares are claimed back for this vault permissionlessly via the
+    /// batcher's own claim(batchId, vault). Clamped to the actual balance so the
+    /// transfer cannot silently zero out (C4).
+    function sweepToEarn(uint64 amount) external {
+        require(msg.sender == strategist, "not strategist");
+        require(depositBatcher != address(0), "earn disabled");
+        euint64 amt = FHE.min(FHE.asEuint64(amount), token.confidentialBalanceOf(address(this)));
+        FHE.allowTransient(amt, address(token));
+        token.confidentialTransferAndCall(depositBatcher, amt, "");
+        emit SweptToEarn(amount);
+    }
+
+    /// @notice Sends up to `shares` cShares into the Earn redeem batcher to refill
+    /// the withdrawal buffer; the asset tokens are claimed back the same way.
+    function redeemFromEarn(uint64 shares) external {
+        require(msg.sender == strategist, "not strategist");
+        require(redeemBatcher != address(0), "earn disabled");
+        euint64 amt = FHE.min(FHE.asEuint64(shares), shareToken.confidentialBalanceOf(address(this)));
+        FHE.allowTransient(amt, address(shareToken));
+        shareToken.confidentialTransferAndCall(redeemBatcher, amt, "");
+        emit RedeemedFromEarn(shares);
+    }
+
+    /// @notice Recovers this vault's funds from a canceled batch. Permissionless —
+    /// the batcher refunds the depositor, so funds can only land back here.
+    function quitEarn(address batcher, uint256 batchId) external {
+        require(batcher == depositBatcher || batcher == redeemBatcher, "unknown batcher");
+        IVaultBatcher(batcher).quit(batchId);
     }
 
     // -------------------------------------------------------------------- draw

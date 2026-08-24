@@ -1,6 +1,7 @@
 import { ArrowRight, CircleCheck, Eye, EyeOff, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PrizeAmount } from "@/components/PrizeAmount";
+import { TokenIcon } from "@/components/TokenIcon";
 import { Button } from "@/components/ui/button";
 import { formatAmount } from "@/lib/contracts";
 import { formatCountdown } from "@/hooks/useNow";
@@ -166,7 +167,7 @@ export function Landing() {
                   className="group grid gap-4 p-5 transition-colors hover:bg-white/45 sm:grid-cols-[1fr_.7fr_.85fr_.7fr_auto] sm:items-center sm:px-6"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="grid size-10 place-items-center rounded-xl bg-primary text-sm font-semibold shadow-[0_8px_18px_rgb(255_217_26/0.2)]">{entry.meta.underlyingSymbol.slice(0, 1)}</span>
+                    <TokenIcon symbol={entry.meta.underlyingSymbol} className="size-10 shrink-0" />
                     <div><div className="font-semibold">{entry.meta.underlyingSymbol}</div><div className="text-xs text-muted-foreground">{entry.meta.symbol} receipt</div></div>
                   </div>
                   <Metric label="Savers" value={entry.participantCount?.toString() ?? "—"} />

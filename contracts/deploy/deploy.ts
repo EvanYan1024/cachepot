@@ -10,6 +10,17 @@ const SEPOLIA_TOKENS = {
   cWETH: "0x46208622DA27d91db4f0393733C8BA082ed83158",
 } as const;
 
+// Zama Confidential Vault (Earn) on Sepolia — only cUSDC has an Earn market, so
+// only that vault gets the wiring; the rest deploy with Earn disabled.
+// https://docs.zama.org/protocol/confidential-vault/reference/addresses
+const SEPOLIA_EARN: Record<string, { shareToken: string; depositBatcher: string; redeemBatcher: string }> = {
+  [SEPOLIA_TOKENS.cUSDC]: {
+    shareToken: "0x7E93d5c150A2178B1fCde0278582Acf59478eA5f",
+    depositBatcher: "0x56E3CF41D18e58AF476C05e9B1705ac2b13862C9",
+    redeemBatcher: "0xe35C25a0F49c6cDC0771C459F1b0548D1E741774",
+  },
+};
+
 // PRIZE_TOKEN: the confidential asset every prize is paid in (must be an ERC7984
 // ERC-20 wrapper, so contributions can be verified as plaintext — see DESIGN.md §8.2).
 // VAULT_TOKENS: comma-separated confidential assets to open vaults over.
@@ -30,10 +41,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const token of vaultTokens) {
     const symbol = Object.entries(SEPOLIA_TOKENS).find(([, a]) => a === token)?.[0] ?? token.slice(0, 8);
+    const earn = hre.network.name === "sepolia" ? SEPOLIA_EARN[token] : undefined;
+    const zero = ethers.ZeroAddress;
     const vault = await deploy(`CacheVault_${symbol}`, {
       contract: "CacheVault",
       from: deployer,
-      args: [token, pool.address],
+      args: [
+        token,
+        pool.address,
+        earn?.shareToken ?? zero,
+        earn?.depositBatcher ?? zero,
+        earn?.redeemBatcher ?? zero,
+        earn ? deployer : zero,
+      ],
       log: true,
     });
     if (!(await poolContract.isVault(vault.address))) {
@@ -43,5 +63,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 export default func;
-func.id = "deploy_cachepot_v3"; // v3: skipVault liveness escape + stranded-TWAB discard
+func.id = "deploy_cachepot_v4"; // v4: buffer-clamped withdraw + Zama Earn wiring (cUSDC)
 func.tags = ["CachePot"];

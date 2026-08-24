@@ -16,7 +16,7 @@ export type VaultMeta = {
 // way PoolTogether front-ends curate which prize vaults they show.
 export const VAULTS: VaultMeta[] = [
   {
-    vault: "0xf50aa1f9B6308da1a82dcCC2Cb1B8c516F8D3548",
+    vault: "0x314CC047759F0678792b5671b8CcfdF5abacd369",
     token: "0x4E7B06D78965594eB5EF5414c357ca21E1554491",
     underlying: "0xa7dA08FafDC9097Cc0E7D4f113A61e31d7e8e9b0",
     symbol: "cUSDT",
@@ -25,7 +25,7 @@ export const VAULTS: VaultMeta[] = [
     faucetUnits: 1_000_000_000n, // 1,000 cUSDT
   },
   {
-    vault: "0xD46e927bD3Ccf55788e986C9B952C0ce37ac2344",
+    vault: "0x16e0dbB985426383672fAbCe1d367C7792A30502",
     token: "0x7c5BF43B851c1dff1a4feE8dB225b87f2C223639",
     underlying: "0x9b5Cd13b8eFbB58Dc25A05CF411D8056058aDFfF",
     symbol: "cUSDC",
@@ -34,7 +34,7 @@ export const VAULTS: VaultMeta[] = [
     faucetUnits: 1_000_000_000n, // 1,000 cUSDC
   },
   {
-    vault: "0x2F7aC339a995cF7135Ba955b87fdd3bb6045F3Ab",
+    vault: "0x52E372c30b830Da5e50926565B769732fFb32a85",
     token: "0x46208622DA27d91db4f0393733C8BA082ed83158",
     underlying: "0xff54739b16576FA5402F211D0b938469Ab9A5f3F",
     symbol: "cWETH",

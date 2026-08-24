@@ -46,7 +46,14 @@ describe("CachePrizePool", function () {
     ).deploy(await under.getAddress(), `c${symbol}`, `c${symbol}`)) as TestWrapper;
     const vault = (await (
       await ethers.getContractFactory("CacheVault")
-    ).deploy(await token.getAddress(), poolAddress)) as CacheVault;
+    ).deploy(
+      await token.getAddress(),
+      poolAddress,
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
+    )) as CacheVault;
     const address = await vault.getAddress();
     await (await pool.registerVault(address)).wait();
     // fund every signer we use in tests with the vault's underlying asset

@@ -216,9 +216,9 @@ L1 金库选择本身几乎不花钱：贡献额是明文，`FHE.ge/lt(euint64, 
 | 合约 | 地址 | 说明 |
 |---|---|---|
 | **CachePrizePool** | `0xd337eFCcB99016F0195852d19ac6828afe866C87` | 共享奖池，prize token = cUSDT，轮次 600s（v3：skipVault 活性逃生口 + 搁浅 TWAB 丢弃） |
-| CacheVault cUSDT | `0xf50aa1f9B6308da1a82dcCC2Cb1B8c516F8D3548` | |
-| CacheVault cUSDC | `0xD46e927bD3Ccf55788e986C9B952C0ce37ac2344` | |
-| CacheVault cWETH | `0x2F7aC339a995cF7135Ba955b87fdd3bb6045F3Ab` | |
+| CacheVault cUSDT | `0x314CC047759F0678792b5671b8CcfdF5abacd369` | v4：缓冲钳制取款 |
+| CacheVault cUSDC | `0x16e0dbB985426383672fAbCe1d367C7792A30502` | v4：接入 Zama Earn（Confidential Vault）批处理器 |
+| CacheVault cWETH | `0x52E372c30b830Da5e50926565B769732fFb32a85` | v4：缓冲钳制取款 |
 | cUSDTMock | `0x4E7B06D78965594eB5EF5414c357ca21E1554491` | **Zama 官方**保密 USDT wrapper（6 位小数，rate 1:1） |
 | cUSDCMock | `0x7c5BF43B851c1dff1a4feE8dB225b87f2C223639` | Zama 官方 |
 | cWETHMock | `0x46208622DA27d91db4f0393733C8BA082ed83158` | Zama 官方 |

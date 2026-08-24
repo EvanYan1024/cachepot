@@ -75,14 +75,26 @@ A stalled or junk vault can't halt the protocol: after a grace period, anyone ca
 - **Decryption**: any value made public goes through KMS threshold signatures verified on-chain with `FHE.checkSignatures`, with per-round replay guards.
 - **Ledger**: prizes are credited through the same encrypted ledger as deposits; a winner's claim reconciles on-chain.
 
+## Principal custody: Zama Earn integration (live on Sepolia)
+
+The cUSDC vault does not let deposits idle: its strategist sweeps idle principal into **[Zama's Confidential Vault](https://docs.zama.org/protocol/confidential-vault)** — the same rails behind app.zama.org/earn, where the Steakhouse Prime USDC vault on Morpho runs on mainnet. Deposits join a batch through `confidentialTransferAndCall`; only the **batch total** is ever decrypted, the position comes back as confidential cShares, and every lifecycle step (dispatch, settle, claim, quit) is a permissionless call — the keeper claims finalized batches automatically.
+
+Three properties make this safe:
+
+- **The strategist controls timing, not custody**: `sweepToEarn` / `redeemFromEarn` can only move funds between the vault and the two official batchers, never to a wallet.
+- **Withdrawals degrade, never lose**: `withdraw` clamps to what the buffer actually holds (`FHE.min` against the vault's own confidential balance), so a swept-out vault can never silently burn a user's ledger — covered by a dedicated red-green test.
+- **Canceled batches are recoverable**: `quitEarn` is permissionless and refunds can only land back in the vault.
+
+The Sepolia Earn market pays no interest (its mock ERC-4626 sits at a 1.0 exchange rate), so prizes are still funded by the keeper's simulated yield leg through the same `contribute()` a production liquidator would call. On mainnet the identical wiring earns real Morpho yield.
+
 ## Deployed on Sepolia
 
 | Contract | Address |
 |---|---|
 | CachePrizePool | [`0xd337eFCcB99016F0195852d19ac6828afe866C87`](https://sepolia.etherscan.io/address/0xd337eFCcB99016F0195852d19ac6828afe866C87) |
-| CacheVault (cUSDT) | `0xf50aa1f9B6308da1a82dcCC2Cb1B8c516F8D3548` |
-| CacheVault (cUSDC) | `0xD46e927bD3Ccf55788e986C9B952C0ce37ac2344` |
-| CacheVault (cWETH) | `0x2F7aC339a995cF7135Ba955b87fdd3bb6045F3Ab` |
+| CacheVault (cUSDT) | `0x314CC047759F0678792b5671b8CcfdF5abacd369` |
+| CacheVault (cUSDC) | `0x16e0dbB985426383672fAbCe1d367C7792A30502` — principal deploys into Zama Earn |
+| CacheVault (cWETH) | `0x52E372c30b830Da5e50926565B769732fFb32a85` |
 | cUSDT / cUSDC / cWETH | official Zama confidential token wrappers |
 | USDTMock (prize underlying) | `0xa7dA08FafDC9097Cc0E7D4f113A61e31d7e8e9b0` — public `mint`, doubles as the faucet |
 
@@ -92,8 +104,10 @@ CachePot deliberately does not mint its own token: vaults accept any existing `I
 
 ```
 contracts/   Hardhat project — CachePrizePool, CacheVault, tests, deploy scripts
-  scripts/keeper.ts    permissionless cron bot that advances draws (runs via GitHub Actions every 5 min)
-  scripts/rehearse.ts  full end-to-end rehearsal against Sepolia
+  scripts/keeper.ts      permissionless cron bot: simulates the yield leg, advances draws,
+                         claims finalized Earn batches (GitHub Actions, every 5 min)
+  scripts/rehearse.ts    full end-to-end round rehearsal against Sepolia
+  scripts/earn-sweep.ts  strategist op: push idle cUSDC principal into Zama Earn
 web/         Vite + React frontend — RainbowKit + @zama-fhe/sdk (encrypt inputs, user-decrypt balances)
 DESIGN.md    full technical design: FHEVM constraints, HCU measurements, security arguments
 ```
@@ -123,9 +137,10 @@ User journey: mint mock USDT from the faucet → wrap into cUSDT → deposit enc
 
 ## Production roadmap
 
-Scoped out for the demo, with interfaces left in place:
+The yield seam is already exercised end-to-end on Sepolia; what remains is scoped for a mainnet launch (the path this bounty's "further development + audit" track is designed for):
 
-- **Real yield**: Sepolia has no rate market, so prizes are funded by a mock yield injection through the same verified `transferFrom → wrap` path a real liquidator would use. Production swaps this for Aave/ERC4626 yield liquidation — exactly PoolTogether V5's contribution step.
+- **Real yield via Zama Earn (mainnet)**: the cUSDC vault already custodies principal in Zama's Confidential Vault batchers on Sepolia. Mainnet is the same wiring pointed at the live Steakhouse Prime USDC market on Morpho, plus the two pieces the 1.0 testnet exchange rate let us defer: share-price accounting (principal-denominated debt, `yield = shares × rate − principal`) and the institutional whitelist gate. Harvested yield enters the prize pool through the same permissionless, plaintext-verified `contribute()` the keeper exercises today — that function *is* the liquidator interface.
+- **Alternative yield sources**: any protocol works behind the same seam — an Aave/ERC4626 position held by a treasury adapter that harvests into `contribute()` needs no changes to the pool or vaults. A TPDA-style auction (PoolTogether V5's liquidation layer) only becomes necessary when yield arrives in a token other than the prize asset.
 - **Scaling the scan**: participant slots are capped per vault for the demo; production adds slot reuse and sharded scans (and can trade weight precision for half the HCU cost if needed).
 - **Multiple winners**: N winners = N independent random targets accumulated in the same scan pass, at far less than N× cost.
 

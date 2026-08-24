@@ -1,6 +1,7 @@
 import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PageHead } from "@/components/Layout";
+import { TokenIcon } from "@/components/TokenIcon";
 import { Veil } from "@/components/Veil";
 import { Button } from "@/components/ui/button";
 import { formatAmount } from "@/lib/contracts";
@@ -31,7 +32,7 @@ export function Vaults() {
       />
 
       <section className="product-panel my-8 overflow-hidden">
-        <div className="hidden grid-cols-[1.2fr_.55fr_.8fr_.65fr_1fr_auto] gap-5 border-b border-border/70 bg-secondary/55 px-6 py-3.5 lg:grid">
+        <div className="hidden grid-cols-[1.2fr_.55fr_.8fr_.65fr_1fr_8rem] gap-6 border-b border-border/70 bg-secondary/55 px-6 py-3.5 lg:grid">
           {[
             "Asset",
             "Savers",
@@ -54,13 +55,11 @@ export function Vaults() {
             return (
               <article
                 key={meta.vault}
-                className="rise grid gap-6 px-5 py-6 sm:px-6 lg:grid-cols-[1.2fr_.55fr_.8fr_.65fr_1fr_auto] lg:items-center"
+                className="rise grid gap-6 px-5 py-6 sm:px-6 lg:grid-cols-[1.2fr_.55fr_.8fr_.65fr_1fr_8rem] lg:items-center"
                 style={{ animationDelay: `${index * 70}ms` }}
               >
                 <div className="flex items-center gap-4">
-                  <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary text-sm font-semibold shadow-[0_8px_18px_rgb(255_217_26/0.2)]">
-                    {meta.underlyingSymbol.slice(0, 1)}
-                  </div>
+                  <TokenIcon symbol={meta.underlyingSymbol} className="size-11 shrink-0" />
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-base font-semibold">{meta.underlyingSymbol}</h2>
@@ -113,7 +112,7 @@ export function Vaults() {
                     </Veil>
                   </div>
 
-                  <Button render={<Link to={`/vault/${meta.vault}`} />} variant="outline" className="group lg:w-auto">
+                  <Button render={<Link to={`/vault/${meta.vault}`} />} variant="outline" className="group lg:w-auto lg:justify-self-end">
                     Manage
                     <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                   </Button>

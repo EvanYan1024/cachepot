@@ -7,6 +7,11 @@ import { deployments, ethers } from "hardhat";
 //   npx hardhat run scripts/keeper.ts --network sepolia
 const BATCH = 6; // measured HCU ceiling is 7 per tx, see DESIGN.md §8
 const VAULT_NAMES = ["CacheVault_cUSDT", "CacheVault_cUSDC", "CacheVault_cWETH"];
+// Sepolia has no live rate market, so the keeper simulates the yield leg: mint mock
+// USDT and push it through the same permissionless contribute() a production
+// liquidator would call. ponytail: fixed drip per populated vault per round; swap for
+// a real harvest (Zama Earn / Aave) when a yield source exists.
+const YIELD_DRIP = 5_000_000n; // 5 USDT per populated vault per round
 
 async function main() {
   const pool = await ethers.getContractAt("CachePrizePool", (await deployments.get("CachePrizePool")).address);
@@ -27,7 +32,26 @@ async function main() {
 
   if (state === 0n) {
     if (now < Number(openedAt + period)) return console.log("round not due yet");
-    if (totalContribution === 0n) return console.log("no contributions, nothing to draw");
+    if (totalContribution === 0n) {
+      const populated = [];
+      for (const vault of vaults) {
+        if ((await vault.participantCount()) > 0n) populated.push(await vault.getAddress());
+      }
+      if (populated.length === 0) return console.log("no participants anywhere, nothing to draw");
+      const [signer] = await ethers.getSigners();
+      const underlying = new ethers.Contract(
+        await pool.underlying(),
+        ["function mint(address to, uint256 amount)", "function approve(address, uint256) returns (bool)"],
+        signer,
+      );
+      const total = YIELD_DRIP * BigInt(populated.length);
+      console.log(`simulating yield: contributing ${YIELD_DRIP} to each of ${populated.length} vault(s)`);
+      await (await underlying.mint(signer.address, total)).wait();
+      await (await underlying.approve(await pool.getAddress(), total)).wait();
+      for (const address of populated) {
+        await (await pool.contribute(address, YIELD_DRIP)).wait();
+      }
+    }
     console.log("closing round…");
     await (await pool.closeRound()).wait();
   }

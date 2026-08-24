@@ -98,7 +98,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {mode === "deposit"
                   ? `The amount is encrypted before it leaves this browser. Your first ${meta.symbol} deposit also grants the vault a one-time operator approval.`
-                  : "The requested amount stays encrypted. If it exceeds your position, the contract privately clamps it to your available balance."}
+                  : `The requested amount stays encrypted and is privately clamped to your position — and to what the vault holds on hand${meta.earn ? ": with part of the principal deployed to Earn, a large withdrawal may fill partially now and the rest once the buffer refills" : ""}.`}
               </p>
             </div>
 
@@ -115,7 +115,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">
-              <span className="text-muted-foreground">Available {mode === "deposit" ? "in wallet" : "in vault"}</span>
+              <span className="text-muted-foreground">{mode === "deposit" ? "Available in wallet" : "Your vault position"}</span>
               <span className="font-mono tabular">
                 <Veil sealed={!position.hasPermit} loading={position.hasPermit && available === undefined} handle={availableHandle} className="h-5 w-24">
                   {available !== undefined ? formatAmount(available) : "0"} {meta.symbol}

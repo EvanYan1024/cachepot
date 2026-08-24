@@ -77,13 +77,14 @@ A stalled or junk vault can't halt the protocol: after a grace period, anyone ca
 
 ## Principal custody: Zama Earn integration (live on Sepolia)
 
-The cUSDC vault does not let deposits idle: its strategist sweeps idle principal into **[Zama's Confidential Vault](https://docs.zama.org/protocol/confidential-vault)** — the same rails behind app.zama.org/earn, where the Steakhouse Prime USDC vault on Morpho runs on mainnet. Deposits join a batch through `confidentialTransferAndCall`; only the **batch total** is ever decrypted, the position comes back as confidential cShares, and every lifecycle step (dispatch, settle, claim, quit) is a permissionless call — the keeper claims finalized batches automatically.
+The cUSDC vault can put deposits to work: its strategist sweeps idle principal into **[Zama's Confidential Vault](https://docs.zama.org/protocol/confidential-vault)** — the same rails behind app.zama.org/earn, where the Steakhouse Prime USDC vault on Morpho runs on mainnet. Deposits join a batch through `confidentialTransferAndCall`; only the **batch total** is ever decrypted, and the position comes back as confidential cShares. Batch dispatch, settlement and claims are permissionless calls — the keeper claims finalized batches on both batchers automatically.
 
-Three properties make this safe:
+Four properties make this safe:
 
-- **The strategist controls timing, not custody**: `sweepToEarn` / `redeemFromEarn` can only move funds between the vault and the two official batchers, never to a wallet.
+- **The strategist controls timing, not custody**: `sweepToEarn` can only move funds to the official deposit batcher, never to a wallet — sweeping principal out is the single strategist-gated call.
+- **A lost strategist can never strand principal**: `redeemFromEarn` is permissionless — anyone can recall cShares into the withdrawal buffer, since more liquidity only ever helps withdrawers and the shares can go nowhere but the official redeem batcher.
 - **Withdrawals degrade, never lose**: `withdraw` clamps to what the buffer actually holds (`FHE.min` against the vault's own confidential balance), so a swept-out vault can never silently burn a user's ledger — covered by a dedicated red-green test.
-- **Canceled batches are recoverable**: `quitEarn` is permissionless and refunds can only land back in the vault.
+- **Batches cannot be griefed or stranded**: rescuing a *canceled* batch via `quitEarn` is permissionless, while quitting a still-*pending* one — which would undo the deployment — is reserved for the strategist.
 
 The Sepolia Earn market pays no interest (its mock ERC-4626 sits at a 1.0 exchange rate), so prizes are still funded by the keeper's simulated yield leg through the same `contribute()` a production liquidator would call. On mainnet the identical wiring earns real Morpho yield.
 
@@ -91,10 +92,10 @@ The Sepolia Earn market pays no interest (its mock ERC-4626 sits at a 1.0 exchan
 
 | Contract | Address |
 |---|---|
-| CachePrizePool | [`0xd337eFCcB99016F0195852d19ac6828afe866C87`](https://sepolia.etherscan.io/address/0xd337eFCcB99016F0195852d19ac6828afe866C87) |
-| CacheVault (cUSDT) | `0x314CC047759F0678792b5671b8CcfdF5abacd369` |
-| CacheVault (cUSDC) | `0x16e0dbB985426383672fAbCe1d367C7792A30502` — principal deploys into Zama Earn |
-| CacheVault (cWETH) | `0x52E372c30b830Da5e50926565B769732fFb32a85` |
+| CachePrizePool | [`0x1C76078391451fC60b82f529CC9c22970CEdD488`](https://sepolia.etherscan.io/address/0x1C76078391451fC60b82f529CC9c22970CEdD488) |
+| CacheVault (cUSDT) | `0x5c02f2303DcFe19aeD5b2F15b479Bd1E810AdFef` |
+| CacheVault (cUSDC) | `0x9bdAD480616dC0c17363068B42b229eb1Ef4CD76` — principal deploys into Zama Earn |
+| CacheVault (cWETH) | `0xe4C075d06f9a382f40DFA84bb8ba3bfe25F350b3` |
 | cUSDT / cUSDC / cWETH | official Zama confidential token wrappers |
 | USDTMock (prize underlying) | `0xa7dA08FafDC9097Cc0E7D4f113A61e31d7e8e9b0` — public `mint`, doubles as the faucet |
 
@@ -137,7 +138,7 @@ User journey: mint mock USDT from the faucet → wrap into cUSDT → deposit enc
 
 ## Production roadmap
 
-The yield seam is already exercised end-to-end on Sepolia; what remains is scoped for a mainnet launch (the path this bounty's "further development + audit" track is designed for):
+Two of the three yield legs are live on Sepolia: confidential principal custody in Earn batches, and prize funding through the permissionless `contribute()` seam. The third leg that closes the loop — valuing the cShare position, redeeming the surplus above principal, and contributing the harvest — is scoped for mainnet (the path this bounty's "further development + audit" track is designed for):
 
 - **Real yield via Zama Earn (mainnet)**: the cUSDC vault already custodies principal in Zama's Confidential Vault batchers on Sepolia. Mainnet is the same wiring pointed at the live Steakhouse Prime USDC market on Morpho, plus the two pieces the 1.0 testnet exchange rate let us defer: share-price accounting (principal-denominated debt, `yield = shares × rate − principal`) and the institutional whitelist gate. Harvested yield enters the prize pool through the same permissionless, plaintext-verified `contribute()` the keeper exercises today — that function *is* the liquidator interface.
 - **Alternative yield sources**: any protocol works behind the same seam — an Aave/ERC4626 position held by a treasury adapter that harvests into `contribute()` needs no changes to the pool or vaults. A TPDA-style auction (PoolTogether V5's liquidation layer) only becomes necessary when yield arrives in a token other than the prize asset.

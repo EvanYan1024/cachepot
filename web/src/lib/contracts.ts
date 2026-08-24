@@ -1,5 +1,5 @@
 export const POOL_ADDRESS = (import.meta.env.VITE_POOL_ADDRESS ??
-  "0xd337eFCcB99016F0195852d19ac6828afe866C87") as `0x${string}`;
+  "0x1C76078391451fC60b82f529CC9c22970CEdD488") as `0x${string}`;
 
 export type EarnMeta = {
   depositBatcher: `0x${string}`; // Zama Confidential Vault deposit batcher
@@ -23,7 +23,7 @@ export type VaultMeta = {
 // way PoolTogether front-ends curate which prize vaults they show.
 export const VAULTS: VaultMeta[] = [
   {
-    vault: "0x314CC047759F0678792b5671b8CcfdF5abacd369",
+    vault: "0x5c02f2303DcFe19aeD5b2F15b479Bd1E810AdFef",
     token: "0x4E7B06D78965594eB5EF5414c357ca21E1554491",
     underlying: "0xa7dA08FafDC9097Cc0E7D4f113A61e31d7e8e9b0",
     symbol: "cUSDT",
@@ -32,7 +32,7 @@ export const VAULTS: VaultMeta[] = [
     faucetUnits: 1_000_000_000n, // 1,000 cUSDT
   },
   {
-    vault: "0x16e0dbB985426383672fAbCe1d367C7792A30502",
+    vault: "0x9bdAD480616dC0c17363068B42b229eb1Ef4CD76",
     token: "0x7c5BF43B851c1dff1a4feE8dB225b87f2C223639",
     underlying: "0x9b5Cd13b8eFbB58Dc25A05CF411D8056058aDFfF",
     symbol: "cUSDC",
@@ -42,11 +42,11 @@ export const VAULTS: VaultMeta[] = [
     earn: {
       depositBatcher: "0x56E3CF41D18e58AF476C05e9B1705ac2b13862C9",
       shareToken: "0x7E93d5c150A2178B1fCde0278582Acf59478eA5f",
-      fromBlock: 11553983n,
+      fromBlock: 11554482n,
     },
   },
   {
-    vault: "0x52E372c30b830Da5e50926565B769732fFb32a85",
+    vault: "0xe4C075d06f9a382f40DFA84bb8ba3bfe25F350b3",
     token: "0x46208622DA27d91db4f0393733C8BA082ed83158",
     underlying: "0xff54739b16576FA5402F211D0b938469Ab9A5f3F",
     symbol: "cWETH",

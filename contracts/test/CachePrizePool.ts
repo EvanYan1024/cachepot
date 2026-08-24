@@ -111,6 +111,23 @@ describe("CachePrizePool", function () {
     }
   }
 
+  it("a later vault's scan cannot clobber the win flag of a user who already won", async function () {
+    const [, alice] = signers;
+    const a = await newVault("AAA");
+    const b = await newVault("BBB");
+    await deposit(a.vault, a.address, alice, 1000);
+    await deposit(b.vault, b.address, alice, 1000);
+    // odds 1,000,000 : 1 — the prize lands in vault A (P ≈ 1 - 1e-6), which is
+    // scanned FIRST; vault B's creditBatch then writes alice's flag again
+    await contribute(a.address, 1_000_000);
+    await contribute(b.address, 1);
+
+    await drawAll([a.vault, b.vault]);
+
+    expect(await wonLastRound(alice)).to.eq(true);
+    expect(await prizeBalance(alice)).to.eq(1_000_001n); // still paid exactly once
+  });
+
   it("contribution is verified plaintext: the reserve tracks wrapped units exactly", async function () {
     const a = await newVault("AAA");
     await contribute(a.address, 500);

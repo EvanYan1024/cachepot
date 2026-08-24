@@ -85,8 +85,8 @@ describe("CacheVault Earn integration", function () {
     return fhevm.userDecryptEuint(FhevmType.euint64, await vault.balanceOf(user.address), vaultAddress, user);
   }
 
-  async function pendingAt(batcher: MockBatcher): Promise<bigint> {
-    const handle = await batcher.pending(vaultAddress);
+  async function pendingAt(batcher: MockBatcher, batchId = 1n): Promise<bigint> {
+    const handle = await batcher.deposits(batchId, vaultAddress);
     if (handle === ethers.ZeroHash) return 0n;
     return fhevm.publicDecryptEuint(FhevmType.euint64, handle);
   }
@@ -108,29 +108,39 @@ describe("CacheVault Earn integration", function () {
     expect(await pendingAt(depositBatcher)).to.equal(100_000n);
   });
 
-  it("quitEarn recovers a canceled batch and withdrawals resume in full", async function () {
+  it("anyone can rescue a canceled batch and withdrawals resume in full", async function () {
     await deposit(100_000);
     await (await vault.connect(strategist).sweepToEarn(100_000)).wait();
+    await (await depositBatcher.setBatchState(1, 3)).wait(); // operator cancels
     await (await vault.connect(signers[2]).quitEarn(await depositBatcher.getAddress(), 1)).wait();
     await withdraw(100_000);
     expect(await walletBalance()).to.equal(10_000_000n);
     expect(await ledgerBalance()).to.equal(0n);
   });
 
-  it("redeemFromEarn moves cShares to the redeem batcher, clamped to holdings", async function () {
+  it("quitting a still-pending batch is reserved for the strategist", async function () {
+    await deposit(100_000);
+    await (await vault.connect(strategist).sweepToEarn(100_000)).wait();
+    await expect(
+      vault.connect(signers[2]).quitEarn(await depositBatcher.getAddress(), 1),
+    ).to.be.revertedWith("not strategist");
+    await (await vault.connect(strategist).quitEarn(await depositBatcher.getAddress(), 1)).wait();
+    expect(await pendingAt(depositBatcher)).to.equal(0n);
+  });
+
+  it("anyone can recall cShares to the buffer via the redeem batcher, clamped to holdings", async function () {
     // hand the vault 50k cShares, standing in for a claimed deposit batch
     await (await shareUnder.mint(user.address, 50_000)).wait();
     await (await shareUnder.connect(user).approve(await shareToken.getAddress(), 50_000)).wait();
     await (await shareToken.connect(user).wrap(vaultAddress, 50_000)).wait();
 
-    await (await vault.connect(strategist).redeemFromEarn(80_000)).wait();
+    await (await vault.connect(user).redeemFromEarn(80_000)).wait();
     expect(await pendingAt(redeemBatcher)).to.equal(50_000n);
   });
 
-  it("only the strategist can move principal", async function () {
+  it("only the strategist can sweep principal out", async function () {
     await deposit(100_000);
     await expect(vault.connect(user).sweepToEarn(1)).to.be.revertedWith("not strategist");
-    await expect(vault.connect(user).redeemFromEarn(1)).to.be.revertedWith("not strategist");
   });
 
   it("quitEarn rejects unknown batchers", async function () {

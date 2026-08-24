@@ -63,5 +63,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 export default func;
-func.id = "deploy_cachepot_v4"; // v4: buffer-clamped withdraw + Zama Earn wiring (cUSDC)
+func.id = "deploy_cachepot_v6"; // v6: multi-vault win flag OR-accumulates within a round
 func.tags = ["CachePot"];

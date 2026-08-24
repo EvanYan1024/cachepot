@@ -6,8 +6,14 @@ import {ZamaEthereumConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 import {IERC7984} from "@openzeppelin/confidential-contracts/interfaces/IERC7984.sol";
 import {CachePrizePool} from "./CachePrizePool.sol";
 
-/// @dev The two Zama Confidential Vault (Earn) batchers share this quit shape.
+/// @dev The two Zama Confidential Vault (Earn) batchers share this shape.
 interface IVaultBatcher {
+    /// @notice Lifecycle state of a batch: 0 Pending, 1 Dispatched, 2 Finalized, 3 Canceled.
+    /// @param batchId The batch to inspect.
+    function batchState(uint256 batchId) external view returns (uint8);
+
+    /// @notice Refunds the caller's entire deposit in a Pending or Canceled batch.
+    /// @param batchId The batch to quit.
     function quit(uint256 batchId) external returns (bytes32);
 }
 
@@ -166,8 +172,12 @@ contract CacheVault is ZamaEthereumConfig {
 
     /// @notice Sends up to `shares` cShares into the Earn redeem batcher to refill
     /// the withdrawal buffer; the asset tokens are claimed back the same way.
+    /// Permissionless: recalling principal into the buffer only improves withdrawal
+    /// liveness, and the shares can go nowhere but the official batcher — so a lost
+    /// strategist key can never strand user principal.
+    // ponytail: an eager caller can keep the vault fully liquid and forfeit yield;
+    // production adds a buffer-target policy before that matters.
     function redeemFromEarn(uint64 shares) external {
-        require(msg.sender == strategist, "not strategist");
         require(redeemBatcher != address(0), "earn disabled");
         euint64 amt = FHE.min(FHE.asEuint64(shares), shareToken.confidentialBalanceOf(address(this)));
         FHE.allowTransient(amt, address(shareToken));
@@ -175,10 +185,15 @@ contract CacheVault is ZamaEthereumConfig {
         emit RedeemedFromEarn(shares);
     }
 
-    /// @notice Recovers this vault's funds from a canceled batch. Permissionless —
-    /// the batcher refunds the depositor, so funds can only land back here.
+    /// @notice Recovers this vault's funds from an Earn batch; the batcher refunds
+    /// the depositor, so funds can only land back here. Rescuing a canceled batch is
+    /// permissionless, but quitting a still-pending one undoes the deployment — the
+    /// real batcher allows both, so that path is reserved for the strategist.
     function quitEarn(address batcher, uint256 batchId) external {
         require(batcher == depositBatcher || batcher == redeemBatcher, "unknown batcher");
+        if (IVaultBatcher(batcher).batchState(batchId) != 3) {
+            require(msg.sender == strategist, "not strategist");
+        }
         IVaultBatcher(batcher).quit(batchId);
     }
 

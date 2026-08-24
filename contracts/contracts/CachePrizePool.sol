@@ -63,6 +63,7 @@ contract CachePrizePool is ZamaEthereumConfig {
     euint64 private _reserve;
     mapping(address => euint64) private _prizeBalance;
     mapping(address => ebool) private _wonLastRound;
+    mapping(address => uint256) private _wonRound; // round the flag above belongs to
 
     event VaultRegistered(address indexed vault);
     event Contributed(address indexed vault, address indexed from, uint256 amount);
@@ -204,10 +205,17 @@ contract CachePrizePool is ZamaEthereumConfig {
             FHE.allowThis(_prizeBalance[u]);
             FHE.allow(_prizeBalance[u], u);
 
-            // the only truthful "did I win" signal: local winner AND winning vault
-            _wonLastRound[u] = win;
-            FHE.allowThis(win);
-            FHE.allow(win, u);
+            // the only truthful "did I win" signal: local winner AND winning vault.
+            // OR within the round — a user saved in several vaults is credited by
+            // each scan, and a later vault's zero flag must not clobber the win
+            if (_wonRound[u] == roundId) {
+                _wonLastRound[u] = FHE.or(_wonLastRound[u], win);
+            } else {
+                _wonLastRound[u] = win;
+                _wonRound[u] = roundId;
+            }
+            FHE.allowThis(_wonLastRound[u]);
+            FHE.allow(_wonLastRound[u], u);
         }
 
         _awarded = awarded;

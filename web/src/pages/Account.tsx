@@ -5,7 +5,7 @@ import { PageHead, WalletAction } from "@/components/Layout";
 import { TokenIcon } from "@/components/TokenIcon";
 import { Veil } from "@/components/Veil";
 import { Button } from "@/components/ui/button";
-import { POOL_ADDRESS, ZERO_HANDLE, formatAmount } from "@/lib/contracts";
+import { POOL_ADDRESS, formatAmount } from "@/lib/contracts";
 import { usePoolActions, usePosition, useWrongNetwork } from "@/hooks/usePool";
 import { useTx } from "@/hooks/useTx";
 
@@ -16,7 +16,9 @@ export function Account() {
   const { busy, run } = useTx();
   const wrongNetwork = useWrongNetwork();
 
-  const claimable = position.prizeBalanceHandle !== undefined && position.prizeBalanceHandle !== ZERO_HANDLE;
+  // a claimed prize leaves an encrypted zero behind, so gate on the decrypted
+  // amount rather than the handle's existence
+  const claimable = (position.prizeBalance ?? 0n) > 0n;
   const activeVaults = position.positions.every((entry) => entry.balance !== undefined)
     ? position.positions.filter((entry) => (entry.balance ?? 0n) > 0n).length
     : undefined;
@@ -35,7 +37,7 @@ export function Account() {
         <PermitPanel position={position} wrongNetwork={wrongNetwork} />
       ) : (
         <div className="space-y-6 py-8">
-          {position.won && (
+          {position.won && claimable && (
             <section className="rise flex flex-col gap-5 border border-foreground bg-primary p-6 sm:flex-row sm:items-center">
               <span className="grid size-11 shrink-0 place-items-center rounded-full bg-foreground text-background">
                 <PartyPopper className="size-5" />

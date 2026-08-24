@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUpRight, EyeOff, Fingerprint, Gift, KeyRound, PartyPop
 import { Link } from "react-router-dom";
 import { useAccount } from "wagmi";
 import { PageHead, WalletAction } from "@/components/Layout";
+import { TokenIcon } from "@/components/TokenIcon";
 import { Veil } from "@/components/Veil";
 import { Button } from "@/components/ui/button";
 import { POOL_ADDRESS, ZERO_HANDLE, formatAmount } from "@/lib/contracts";
@@ -90,9 +91,7 @@ export function Account() {
               {position.positions.map(({ meta, balance, balanceHandle, walletBalance, walletBalanceHandle }) => (
                 <li key={meta.vault} className="grid gap-5 border-t border-border/70 p-5 first:border-t-0 hover:bg-white/35 md:grid-cols-[1.1fr_1fr_1fr_.75fr_auto] md:items-center md:px-6">
                   <div className="flex items-center gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-xs font-semibold text-primary-foreground shadow-[0_8px_18px_rgb(255_217_26/0.2)]">
-                      {meta.symbol.slice(1, 2)}
-                    </span>
+                    <TokenIcon symbol={meta.underlyingSymbol} className="size-10 shrink-0" />
                     <div>
                       <div className="font-medium">{meta.symbol}</div>
                       <div className="mt-0.5 text-xs text-muted-foreground">{meta.underlyingSymbol} savings</div>
@@ -171,7 +170,7 @@ function DisconnectedPortfolio() {
           {["cUSDT", "cUSDC", "cWETH"].map((symbol) => (
             <div key={symbol} className="grid grid-cols-[1fr_auto] items-center gap-5 border-t border-border py-4 first:border-t-0">
               <div className="flex items-center gap-3">
-                <span className="grid size-8 place-items-center rounded-full border border-border bg-primary text-xs font-semibold">{symbol.slice(1, 2)}</span>
+                <TokenIcon symbol={symbol.slice(1)} className="size-8 shrink-0" />
                 <span className="text-sm font-medium">{symbol}</span>
               </div>
               <span className="font-mono text-sm tracking-[0.14em] text-muted-foreground">••••••</span>

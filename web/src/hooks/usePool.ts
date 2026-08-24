@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDecryptValues, useEncrypt, useGrantPermit, useHasPermit, useZamaSDK } from "@zama-fhe/react-sdk";
 import { useAccount, usePublicClient, useReadContracts, useWriteContract } from "wagmi";
-import type { ContractFunctionParameters } from "viem";
+import { parseAbiItem, type ContractFunctionParameters } from "viem";
 import { sepolia } from "wagmi/chains";
 import { toast } from "sonner";
 import {
@@ -92,6 +92,46 @@ export function useVaultStats(): VaultStats[] {
       cursor: slice?.[4] as bigint | undefined,
     };
   });
+}
+
+const SWEPT_EVENT = parseAbiItem("event SweptToEarn(uint64 requested)");
+
+/// Public trail of the vault's Zama Earn position: sweep amounts are plaintext
+/// events, and a non-zero cShare balance handle proves the position exists —
+/// while the position size itself stays confidential.
+export function useEarnStats(meta: VaultMeta) {
+  const publicClient = usePublicClient();
+  const enabled = !!meta.earn;
+  const { data } = useReadContracts({
+    contracts: [
+      {
+        address: meta.earn?.shareToken ?? meta.token,
+        abi: tokenAbi,
+        functionName: "confidentialBalanceOf",
+        args: [meta.vault],
+      },
+    ],
+    query: { enabled, refetchInterval: 30_000 },
+  });
+  const shareHandle = data?.[0]?.result as `0x${string}` | undefined;
+  const swept = useQuery({
+    queryKey: ["earn-swept", meta.vault],
+    queryFn: async () => {
+      const logs = await publicClient!.getLogs({
+        address: meta.vault,
+        event: SWEPT_EVENT,
+        fromBlock: meta.earn!.fromBlock,
+      });
+      return logs.reduce((sum, log) => sum + (log.args.requested ?? 0n), 0n);
+    },
+    enabled: enabled && !!publicClient,
+    refetchInterval: 60_000,
+  });
+  return {
+    active: enabled,
+    sweptTotal: swept.data,
+    hasPosition: !!shareHandle && shareHandle !== ZERO_HANDLE,
+  };
 }
 
 /// Derived round clock, shared by the prize page and the landing teaser.
@@ -355,6 +395,36 @@ export function usePoolActions() {
       });
     },
     closeRound: async () => {
+      await send("Closing round & drawing encrypted randomness", {
+        address: POOL_ADDRESS,
+        abi: poolAbi,
+        functionName: "closeRound",
+      });
+    },
+    /// One-click demo yield: contribute test USDT to every populated vault, then
+    /// close the overdue round — the same sequence the keeper runs on cron.
+    fundAndDraw: async (vaultAddresses: `0x${string}`[], unitsEach: bigint) => {
+      const total = unitsEach * BigInt(vaultAddresses.length);
+      await send(`Minting test ${PRIZE_VAULT.underlyingSymbol}`, {
+        address: PRIZE_VAULT.underlying,
+        abi: underlyingAbi,
+        functionName: "mint",
+        args: [address!, total],
+      });
+      await send("Approving the prize pool", {
+        address: PRIZE_VAULT.underlying,
+        abi: underlyingAbi,
+        functionName: "approve",
+        args: [POOL_ADDRESS, total],
+      });
+      for (const vault of vaultAddresses) {
+        await send("Contributing simulated yield", {
+          address: POOL_ADDRESS,
+          abi: poolAbi,
+          functionName: "contribute",
+          args: [vault, unitsEach],
+        });
+      }
       await send("Closing round & drawing encrypted randomness", {
         address: POOL_ADDRESS,
         abi: poolAbi,

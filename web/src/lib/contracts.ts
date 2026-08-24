@@ -1,6 +1,12 @@
 export const POOL_ADDRESS = (import.meta.env.VITE_POOL_ADDRESS ??
   "0xd337eFCcB99016F0195852d19ac6828afe866C87") as `0x${string}`;
 
+export type EarnMeta = {
+  depositBatcher: `0x${string}`; // Zama Confidential Vault deposit batcher
+  shareToken: `0x${string}`; // confidential cShare wrapper the vault's position lands in
+  fromBlock: bigint; // vault deploy block — start of the public SweptToEarn trail
+};
+
 export type VaultMeta = {
   vault: `0x${string}`;
   token: `0x${string}`; // Zama's official ERC7984 confidential wrapper (6 decimals)
@@ -9,6 +15,7 @@ export type VaultMeta = {
   underlyingSymbol: string;
   underlyingDecimals: number;
   faucetUnits: bigint; // confidential units minted per faucet click
+  earn?: EarnMeta; // present when idle principal is deployed into Zama Earn
 };
 
 // Curated on purpose: vault registration on-chain is permissionless, so the on-chain
@@ -32,6 +39,11 @@ export const VAULTS: VaultMeta[] = [
     underlyingSymbol: "USDC",
     underlyingDecimals: 6,
     faucetUnits: 1_000_000_000n, // 1,000 cUSDC
+    earn: {
+      depositBatcher: "0x56E3CF41D18e58AF476C05e9B1705ac2b13862C9",
+      shareToken: "0x7E93d5c150A2178B1fCde0278582Acf59478eA5f",
+      fromBlock: 11553983n,
+    },
   },
   {
     vault: "0x52E372c30b830Da5e50926565B769732fFb32a85",

@@ -63,6 +63,7 @@ export function Vaults() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-base font-semibold">{meta.underlyingSymbol}</h2>
+                      {meta.earn && <span className="status-chip">Earn</span>}
                       {drawing && (
                         <span className="status-chip border-primary/50 bg-primary/15 text-foreground">Scanning</span>
                       )}

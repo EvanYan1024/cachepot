@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { ArrowLeft, Coins, Fingerprint, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Coins, Fingerprint, Lock, ShieldCheck, Sprout } from "lucide-react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useAccount } from "wagmi";
 import { AmountField } from "@/components/AmountField";
 import { PageHead } from "@/components/Layout";
 import { Veil } from "@/components/Veil";
 import { Button } from "@/components/ui/button";
-import { findVault, formatAmount, parseAmount } from "@/lib/contracts";
-import { usePosition, useVaultActions, useWrongNetwork } from "@/hooks/usePool";
+import { findVault, formatAmount, parseAmount, type VaultMeta } from "@/lib/contracts";
+import { useEarnStats, usePosition, useVaultActions, useWrongNetwork } from "@/hooks/usePool";
 import { useTx } from "@/hooks/useTx";
 
 export function Vault() {
@@ -171,6 +171,8 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             )}
           </section>
 
+          {meta.earn && <EarnCard meta={meta} />}
+
           <details className="product-panel group p-6">
             <summary className="cursor-pointer list-none text-sm font-medium marker:hidden">How fair odds are calculated <span className="float-right text-muted-foreground group-open:rotate-45">+</span></summary>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -180,6 +182,48 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
         </aside>
       </div>
     </>
+  );
+}
+
+/// The vault's live Zama Earn position: sweep amounts are public events, the
+/// position's existence is provable from its cShare handle, its size stays sealed.
+function EarnCard({ meta }: { meta: VaultMeta }) {
+  const earn = useEarnStats(meta);
+  return (
+    <section className="product-panel p-6">
+      <div className="flex items-center gap-3">
+      <Sprout className="size-5" strokeWidth={1.7} />
+        <h2 className="text-lg font-medium">Principal at work</h2>
+      </div>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        Idle {meta.symbol} is deployed into Zama's Confidential Vault — the rails behind Zama Earn. Deposits join a
+        batch, and only the batch total is ever decrypted.
+      </p>
+      <dl className="mt-4 divide-y divide-border/70 border-y border-border/70 text-sm">
+        <div className="flex items-center justify-between py-2.5">
+          <dt className="text-muted-foreground">Swept to Earn</dt>
+          <dd className="font-mono tabular">
+            {earn.sweptTotal !== undefined ? `${formatAmount(earn.sweptTotal)} ${meta.symbol}` : "—"}
+          </dd>
+        </div>
+        <div className="flex items-center justify-between py-2.5">
+          <dt className="text-muted-foreground">cShare position</dt>
+          <dd className="text-sm">{earn.hasPosition ? "Held · amount confidential" : "None yet"}</dd>
+        </div>
+      </dl>
+      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+        The strategist can only move funds between this vault and the official batchers — never to a wallet. On
+        mainnet the same wiring earns real Morpho yield.
+      </p>
+      <a
+        href={`https://sepolia.etherscan.io/address/${meta.vault}`}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-4 inline-flex items-center gap-1 text-xs font-medium underline underline-offset-4 hover:text-muted-foreground"
+      >
+        Verify the trail on Etherscan <ArrowUpRight className="size-3.5" />
+      </a>
+    </section>
   );
 }
 

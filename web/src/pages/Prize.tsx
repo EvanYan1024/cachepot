@@ -57,6 +57,13 @@ export function Prize() {
       ? Math.min(100, Math.max(0, ((period - round.secondsLeft) / period) * 100))
       : 0;
   const funded = stats.filter((entry) => (entry.contribution ?? 0n) > 0n);
+  const populated = stats.filter((entry) => (entry.participantCount ?? 0n) > 0n);
+  const needsFunding =
+    !round.drawing &&
+    round.secondsLeft !== undefined &&
+    round.secondsLeft <= 0 &&
+    round.totalContribution === 0n &&
+    populated.length > 0;
   const finished = funded.filter((entry) => entry.drawn).length;
   const drawPct = round.drawing && funded.length > 0 ? (finished / funded.length) * 100 : 0;
   const progress = round.drawing ? drawPct : elapsedPct;
@@ -142,7 +149,9 @@ export function Prize() {
           <div className="flex items-start justify-between gap-5">
             <div>
               <div className="label text-muted-foreground">Current action</div>
-              <h2 className="mt-2 text-2xl font-semibold">{round.drawing ? "Complete the encrypted scan" : "Close the active round"}</h2>
+              <h2 className="mt-2 text-2xl font-semibold">
+                {round.drawing ? "Complete the encrypted scan" : needsFunding ? "Fund and run this draw" : "Close the active round"}
+              </h2>
             </div>
             <Gavel className="size-5 shrink-0 text-muted-foreground" />
           </div>
@@ -150,10 +159,29 @@ export function Prize() {
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {round.drawing
               ? "Vault scans are permissionless and batched. Advance any unfinished vault; after the grace period, a stalled vault can be skipped without losing the reserve."
-              : "When the timer expires, any connected wallet can close the round and create the encrypted draw target."}
+              : needsFunding
+                ? "The round is past due but no yield has entered it yet. Contribute simulated yield to every saver vault and close the round yourself — the exact sequence the keeper runs, and every call is permissionless."
+                : "When the timer expires, any connected wallet can close the round and create the encrypted draw target."}
           </p>
 
-          {!round.drawing && (
+          {!round.drawing && needsFunding && (
+            <>
+              <Button
+                size="lg"
+                className="mt-7 w-full"
+                disabled={!isConnected || busy || wrongNetwork}
+                onClick={() => run(() => actions.fundAndDraw(populated.map((entry) => entry.meta.vault), parseAmount("10")))}
+              >
+                Fund with test yield & draw
+              </Button>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Contributes 10 USDT to each of {populated.length} saver vault{populated.length > 1 ? "s" : ""}, then
+                closes the round — {3 + populated.length} transactions in a row.
+              </p>
+            </>
+          )}
+
+          {!round.drawing && !needsFunding && (
             <>
               <Button
                 size="lg"
@@ -166,7 +194,7 @@ export function Prize() {
               {!round.closable && (
                 <p className="mt-3 text-xs text-muted-foreground">
                   {round.totalContribution === 0n
-                    ? "At least one vault needs a prize contribution before this round can close."
+                    ? "At least one vault needs both savers and a prize contribution before this round can close."
                     : "This action unlocks when the round countdown reaches zero."}
                 </p>
               )}

@@ -36,7 +36,7 @@ export function Account() {
       ) : (
         <div className="space-y-6 py-8">
           {position.won && (
-            <section className="flex flex-col gap-5 border border-foreground bg-primary p-6 sm:flex-row sm:items-center">
+            <section className="rise flex flex-col gap-5 border border-foreground bg-primary p-6 sm:flex-row sm:items-center">
               <span className="grid size-11 shrink-0 place-items-center rounded-full bg-foreground text-background">
                 <PartyPopper className="size-5" />
               </span>

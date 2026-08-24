@@ -14,6 +14,7 @@ const VAULT_NAMES = ["CacheVault_cUSDT", "CacheVault_cUSDC", "CacheVault_cWETH"]
 const YIELD_DRIP = 5_000_000n; // 5 USDT per populated vault per round
 
 async function main() {
+  const [signer] = await ethers.getSigners();
   const pool = await ethers.getContractAt("CachePrizePool", (await deployments.get("CachePrizePool")).address);
   const vaults = await Promise.all(
     VAULT_NAMES.map(async (name) => ethers.getContractAt("CacheVault", (await deployments.get(name)).address)),
@@ -32,26 +33,28 @@ async function main() {
 
   if (state === 0n) {
     if (now < Number(openedAt + period)) return console.log("round not due yet");
-    if (totalContribution === 0n) {
-      const populated = [];
-      for (const vault of vaults) {
-        if ((await vault.participantCount()) > 0n) populated.push(await vault.getAddress());
-      }
-      if (populated.length === 0) return console.log("no participants anywhere, nothing to draw");
-      const [signer] = await ethers.getSigners();
+    // drip per vault: any populated vault still without odds gets one, so an
+    // external sponsor funding one vault cannot starve the others for the round
+    const dry = [];
+    for (const vault of vaults) {
+      const address = await vault.getAddress();
+      if ((await vault.participantCount()) > 0n && (await pool.contribution(address)) === 0n) dry.push(address);
+    }
+    if (dry.length > 0) {
       const underlying = new ethers.Contract(
         await pool.underlying(),
         ["function mint(address to, uint256 amount)", "function approve(address, uint256) returns (bool)"],
         signer,
       );
-      const total = YIELD_DRIP * BigInt(populated.length);
-      console.log(`simulating yield: contributing ${YIELD_DRIP} to each of ${populated.length} vault(s)`);
+      const total = YIELD_DRIP * BigInt(dry.length);
+      console.log(`simulating yield: contributing ${YIELD_DRIP} to each of ${dry.length} vault(s)`);
       await (await underlying.mint(signer.address, total)).wait();
       await (await underlying.approve(await pool.getAddress(), total)).wait();
-      for (const address of populated) {
+      for (const address of dry) {
         await (await pool.contribute(address, YIELD_DRIP)).wait();
       }
     }
+    if ((await pool.totalContribution()) === 0n) return console.log("no participants anywhere, nothing to draw");
     console.log("closing round…");
     await (await pool.closeRound()).wait();
   }
@@ -94,34 +97,49 @@ async function main() {
       console.log(`still drawing; grace ends in ${closedAt + grace - BigInt(block!.timestamp)}s`);
     }
   }
-  // claim any finalized Earn deposit batches for vaults wired to a batcher; the
-  // claim is permissionless and lands cShares directly in the vault
+  // claim any finalized Earn batches — deposit AND redeem — for wired vaults; the
+  // claim is permissionless and lands the tokens directly in the vault. Claiming an
+  // already-claimed batch SUCCEEDS on the real batcher (it transfers an encrypted
+  // zero), so the Claimed event log is the only reliable dedup.
   const batcherAbi = [
     "function currentBatchId() view returns (uint256)",
     "function batchState(uint256) view returns (uint8)",
     "function deposits(uint256, address) view returns (bytes32)",
     "function claim(uint256, address)",
+    "event Claimed(uint256 indexed batchId, address indexed account, bytes32 amount)",
   ];
-  const [signer] = await ethers.getSigners();
+  const BATCH_WINDOW = 24n; // ids to scan back from the current batch (~1 day)
+  const LOOKBACK_BLOCKS = 50_000n; // ~1 week of Sepolia blocks, covers the window
+  const latestBlock = BigInt(await ethers.provider.getBlockNumber());
   for (const vault of vaults) {
-    let batcherAddress: string;
+    let batchers: string[];
     try {
-      batcherAddress = await vault.depositBatcher();
+      batchers = [await vault.depositBatcher(), await vault.redeemBatcher()];
     } catch {
-      continue; // pre-earn deployment without the getter
+      continue; // pre-earn deployment without the getters
     }
-    if (batcherAddress === ethers.ZeroAddress) continue;
     const address = await vault.getAddress();
-    const batcher = new ethers.Contract(batcherAddress, batcherAbi, signer);
-    const current = await batcher.currentBatchId();
-    for (let id = current > 12n ? current - 12n : 0n; id <= current; id++) {
-      if (Number(await batcher.batchState(id)) !== 2) continue;
-      if ((await batcher.deposits(id, address)) === ethers.ZeroHash) continue;
+    for (const batcherAddress of batchers) {
+      if (batcherAddress === ethers.ZeroAddress) continue;
+      const batcher = new ethers.Contract(batcherAddress, batcherAbi, signer);
+      let claimed = new Set<bigint>();
       try {
+        const logs = await batcher.queryFilter(
+          batcher.filters.Claimed(null, address),
+          Number(latestBlock > LOOKBACK_BLOCKS ? latestBlock - LOOKBACK_BLOCKS : 0n),
+        );
+        claimed = new Set(logs.map((log) => (log as ethers.EventLog).args.batchId as bigint));
+      } catch (error) {
+        // RPC log-range limit: fall back to re-claiming, which only transfers zero
+        console.warn(`claim-log scan failed on ${batcherAddress}:`, (error as Error).message.slice(0, 80));
+      }
+      const current: bigint = await batcher.currentBatchId();
+      for (let id = current > BATCH_WINDOW ? current - BATCH_WINDOW : 0n; id <= current; id++) {
+        if (claimed.has(id)) continue;
+        if (Number(await batcher.batchState(id)) !== 2) continue;
+        if ((await batcher.deposits(id, address)) === ethers.ZeroHash) continue;
         await (await batcher.claim(id, address)).wait();
-        console.log(`claimed earn batch #${id} for vault ${address}`);
-      } catch {
-        // already claimed — gas estimation reverts before any spend
+        console.log(`claimed earn batch #${id} on ${batcherAddress} for vault ${address}`);
       }
     }
   }

@@ -5,10 +5,10 @@ name: Keeper
 # makes is permissionless — this is a convenience bot, not a privileged operator.
 on:
   schedule:
-    # Every 30 min is plenty: idle rounds only draw every 4h (keeper throttle),
-    # visitors can fund & close a round instantly from the app themselves, and
-    # Earn batches settle on an hourly cadence. Best effort; GitHub may delay.
-    - cron: "*/30 * * * *"
+    # Hourly matches the Earn batch cadence and bounds stall recovery to ~1h;
+    # idle-round gas is governed by the keeper's own 4h throttle, and visitors
+    # can fund & close a round instantly from the app themselves. Best effort.
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:

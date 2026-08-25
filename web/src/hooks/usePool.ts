@@ -330,6 +330,21 @@ export function useVaultActions(meta: VaultMeta) {
         functionName: "mint",
         args: [address!, raw],
       });
+      // USDT-style approve guard: a dangling non-zero allowance must be zeroed first
+      const allowance = (await publicClient!.readContract({
+        address: meta.underlying,
+        abi: underlyingAbi,
+        functionName: "allowance",
+        args: [address!, meta.token],
+      })) as bigint;
+      if (allowance > 0n) {
+        await send("Clearing a stale approval", {
+          address: meta.underlying,
+          abi: underlyingAbi,
+          functionName: "approve",
+          args: [meta.token, 0n],
+        });
+      }
       await send("Approving the confidential wrapper", {
         address: meta.underlying,
         abi: underlyingAbi,
@@ -371,6 +386,30 @@ export function usePoolActions() {
   const publicClient = usePublicClient();
   const send = useSend();
 
+  /// USDT-style approve guard: a dangling non-zero allowance must be zeroed first.
+  async function approvePool(units: bigint) {
+    const allowance = (await publicClient!.readContract({
+      address: PRIZE_VAULT.underlying,
+      abi: underlyingAbi,
+      functionName: "allowance",
+      args: [address!, POOL_ADDRESS],
+    })) as bigint;
+    if (allowance > 0n) {
+      await send("Clearing a stale approval", {
+        address: PRIZE_VAULT.underlying,
+        abi: underlyingAbi,
+        functionName: "approve",
+        args: [POOL_ADDRESS, 0n],
+      });
+    }
+    await send("Approving the prize pool", {
+      address: PRIZE_VAULT.underlying,
+      abi: underlyingAbi,
+      functionName: "approve",
+      args: [POOL_ADDRESS, units],
+    });
+  }
+
   return {
     /// Sponsor a vault's odds with verified plaintext: mint the prize token's
     /// underlying, approve the pool, and let the pool wrap it itself (§8.2a).
@@ -381,12 +420,7 @@ export function usePoolActions() {
         functionName: "mint",
         args: [address!, units],
       });
-      await send("Approving the prize pool", {
-        address: PRIZE_VAULT.underlying,
-        abi: underlyingAbi,
-        functionName: "approve",
-        args: [POOL_ADDRESS, units],
-      });
+      await approvePool(units);
       await send("Contributing to the vault's odds", {
         address: POOL_ADDRESS,
         abi: poolAbi,
@@ -411,12 +445,7 @@ export function usePoolActions() {
         functionName: "mint",
         args: [address!, total],
       });
-      await send("Approving the prize pool", {
-        address: PRIZE_VAULT.underlying,
-        abi: underlyingAbi,
-        functionName: "approve",
-        args: [POOL_ADDRESS, total],
-      });
+      await approvePool(total);
       for (const vault of vaultAddresses) {
         await send("Contributing simulated yield", {
           address: POOL_ADDRESS,

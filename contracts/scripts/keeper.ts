@@ -1,4 +1,4 @@
-import { deployments, ethers } from "hardhat";
+import { deployments, ethers, fhevm } from "hardhat";
 
 // Cron-friendly single pass over the two-layer protocol: closes the pool round when
 // due, scans every funded vault to completion in BATCH-sized transactions, and skips
@@ -18,6 +18,9 @@ const YIELD_DRIP = 5_000_000n; // 5 USDT per populated vault per round
 const IDLE_THROTTLE = 4 * 3600;
 
 async function main() {
+  // the plugin hooks estimateGas even for plain transactions; without this an
+  // underlying provider error gets masked by "plugin is not initialized"
+  await fhevm.initializeCLIApi();
   const [signer] = await ethers.getSigners();
   const pool = await ethers.getContractAt("CachePrizePool", (await deployments.get("CachePrizePool")).address);
   const vaults = await Promise.all(
@@ -50,13 +53,23 @@ async function main() {
     if (dry.length > 0) {
       const underlying = new ethers.Contract(
         await pool.underlying(),
-        ["function mint(address to, uint256 amount)", "function approve(address, uint256) returns (bool)"],
+        [
+          "function mint(address to, uint256 amount)",
+          "function approve(address, uint256) returns (bool)",
+          "function allowance(address, address) view returns (uint256)",
+        ],
         signer,
       );
       const total = YIELD_DRIP * BigInt(dry.length);
       console.log(`simulating yield: contributing ${YIELD_DRIP} to each of ${dry.length} vault(s)`);
       await (await underlying.mint(signer.address, total)).wait();
-      await (await underlying.approve(await pool.getAddress(), total)).wait();
+      const poolAddress = await pool.getAddress();
+      // USDT-style approve guard: a non-zero allowance (left dangling by a crashed
+      // run) must be reset to zero before it can be set again
+      if ((await underlying.allowance(signer.address, poolAddress)) > 0n) {
+        await (await underlying.approve(poolAddress, 0)).wait();
+      }
+      await (await underlying.approve(poolAddress, total)).wait();
       for (const address of dry) {
         await (await pool.contribute(address, YIELD_DRIP)).wait();
       }

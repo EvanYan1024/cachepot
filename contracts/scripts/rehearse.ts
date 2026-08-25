@@ -19,8 +19,17 @@ const CONTRIBUTIONS = [20_000_000n, 10_000_000n]; // buys each vault its share o
 const erc20Abi = [
   "function mint(address to, uint256 amount)",
   "function approve(address spender, uint256 amount) returns (bool)",
+  "function allowance(address, address) view returns (uint256)",
   "function balanceOf(address) view returns (uint256)",
 ];
+
+/// USDT-style approve guard: reset a dangling non-zero allowance before setting.
+async function approveExactly(token: ethers.Contract, owner: string, spender: string, amount: bigint) {
+  if ((await token.allowance(owner, spender)) > 0n) {
+    await (await token.approve(spender, 0)).wait();
+  }
+  await (await token.approve(spender, amount)).wait();
+}
 const wrapperAbi = [
   "function wrap(address to, uint256 amount)",
   "function setOperator(address operator, uint48 until)",
@@ -50,7 +59,7 @@ async function main() {
 
     console.log(`[1] ${spec.name}: faucet + shield ${spec.deposit}`);
     await (await under.mint(me.address, spec.deposit)).wait();
-    await (await under.approve(await token.getAddress(), spec.deposit)).wait();
+    await approveExactly(under, me.address, await token.getAddress(), spec.deposit);
     await (await token.wrap(me.address, spec.deposit)).wait();
     if (!(await token.isOperator(me.address, address))) {
       await (await token.setOperator(address, 2n ** 48n - 1n)).wait();
@@ -66,7 +75,7 @@ async function main() {
   const totalContribution = CONTRIBUTIONS.reduce((a, b) => a + b, 0n);
   console.log(`\n[3] sponsoring the shared pool with ${totalContribution} (plaintext, verifiable)`);
   await (await prizeUnderlying.mint(me.address, totalContribution)).wait();
-  await (await prizeUnderlying.approve(poolAddress, totalContribution)).wait();
+  await approveExactly(prizeUnderlying, me.address, poolAddress, totalContribution);
   for (let i = 0; i < vaults.length; i++) {
     await (await pool.contribute(vaults[i].address, CONTRIBUTIONS[i])).wait();
     console.log(`    ${VAULTS[i].name} odds share: ${CONTRIBUTIONS[i]} / ${totalContribution}`);

@@ -12,6 +12,10 @@ const VAULT_NAMES = ["CacheVault_cUSDT", "CacheVault_cUSDC", "CacheVault_cWETH"]
 // liquidator would call. ponytail: fixed drip per populated vault per round; swap for
 // a real harvest (Zama Earn / Aave) when a yield source exists.
 const YIELD_DRIP = 5_000_000n; // 5 USDT per populated vault per round
+// An idle round (nobody funded it) only gets simulated yield every few hours —
+// a full drip+draw cycle is ~9 transactions and a 600s cadence drains the gas
+// wallet in a day. Visitors can force a draw any time via the app's fund button.
+const IDLE_THROTTLE = 4 * 3600;
 
 async function main() {
   const [signer] = await ethers.getSigners();
@@ -33,6 +37,9 @@ async function main() {
 
   if (state === 0n) {
     if (now < Number(openedAt + period)) return console.log("round not due yet");
+    if (totalContribution === 0n && now - Number(openedAt) < IDLE_THROTTLE) {
+      return console.log(`idle round; next simulated yield in ${IDLE_THROTTLE - (now - Number(openedAt))}s`);
+    }
     // drip per vault: any populated vault still without odds gets one, so an
     // external sponsor funding one vault cannot starve the others for the round
     const dry = [];

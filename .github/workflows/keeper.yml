@@ -35,3 +35,5 @@ jobs:
       - run: npx hardhat run scripts/keeper.ts --network sepolia
         env:
           HARDHAT_VAR_DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          # optional: a dedicated RPC avoids the public endpoint's nonce races
+          HARDHAT_VAR_INFURA_API_KEY: ${{ secrets.INFURA_API_KEY }}

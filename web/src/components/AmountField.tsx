@@ -35,7 +35,7 @@ export function AmountField({
           onChange={(event) => onChange(event.target.value)}
           className="h-24 border-0 bg-transparent pr-28 pl-5 text-4xl font-light tracking-[-0.055em] shadow-none tabular focus-visible:ring-0 md:text-5xl"
         />
-        <span className="pointer-events-none absolute top-4 right-4 rounded-lg border border-border/70 bg-secondary/80 px-3 py-1.5 text-xs font-medium text-foreground">{unit}</span>
+        <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 rounded-lg border border-border/70 bg-secondary/80 px-3 py-1.5 text-xs font-medium text-foreground">{unit}</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {presets.map((preset) => (

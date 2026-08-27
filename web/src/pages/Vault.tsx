@@ -111,16 +111,17 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
                 unit={meta.symbol}
                 disabled={disabled}
                 max={available !== undefined && available > 0n ? formatAmountPlain(available) : undefined}
+                balance={
+                  <span className="flex items-center gap-2">
+                    {mode === "deposit" ? "In wallet" : "Your position"}
+                    <span className="font-mono text-foreground tabular">
+                      <Veil sealed={!position.hasPermit} loading={position.hasPermit && available === undefined} handle={availableHandle} className="h-4 w-20">
+                        {available !== undefined ? formatAmount(available) : "0"} {meta.symbol}
+                      </Veil>
+                    </span>
+                  </span>
+                }
               />
-            </div>
-
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4 text-sm">
-              <span className="text-muted-foreground">{mode === "deposit" ? "Available in wallet" : "Your vault position"}</span>
-              <span className="font-mono tabular">
-                <Veil sealed={!position.hasPermit} loading={position.hasPermit && available === undefined} handle={availableHandle} className="h-5 w-24">
-                  {available !== undefined ? formatAmount(available) : "0"} {meta.symbol}
-                </Veil>
-              </span>
             </div>
 
             <Button

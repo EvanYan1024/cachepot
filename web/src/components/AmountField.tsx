@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 
 export function AmountField({
@@ -9,6 +10,7 @@ export function AmountField({
   unit = "cUSDT",
   disabled,
   max,
+  balance,
 }: {
   id: string;
   label: string;
@@ -17,7 +19,8 @@ export function AmountField({
   presets?: number[];
   unit?: string;
   disabled?: boolean;
-  max?: string; // full available balance; renders a Max chip when known
+  max?: string; // full available balance; renders a Max button when known
+  balance?: ReactNode; // available-balance readout, shown beside the Max button
 }) {
   return (
     <div className="space-y-3">
@@ -35,7 +38,22 @@ export function AmountField({
           onChange={(event) => onChange(event.target.value)}
           className="h-24 border-0 bg-transparent pr-28 pl-5 text-4xl font-light tracking-[-0.055em] shadow-none tabular focus-visible:ring-0 md:text-5xl"
         />
-        <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 rounded-lg border border-border/70 bg-secondary/80 px-3 py-1.5 text-xs font-medium text-foreground">{unit}</span>
+        <span className="pointer-events-none absolute top-14 right-4 -translate-y-1/2 rounded-lg border border-border/70 bg-secondary/80 px-3 py-1.5 text-xs font-medium text-foreground">{unit}</span>
+        {(balance || max !== undefined) && (
+          <div className="flex items-center justify-between gap-3 border-t border-border/70 px-5 py-3 text-sm">
+            <span className="min-w-0 truncate text-muted-foreground">{balance}</span>
+            {max !== undefined && (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onChange(max)}
+                className="shrink-0 rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-foreground transition-[background-color,transform] hover:bg-muted active:translate-y-px disabled:opacity-50"
+              >
+                Max
+              </button>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap gap-2">
         {presets.map((preset) => (
@@ -49,16 +67,6 @@ export function AmountField({
             {preset.toLocaleString()}
           </button>
         ))}
-        {max !== undefined && (
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={() => onChange(max)}
-            className="min-h-8 rounded-lg border border-foreground/25 bg-card/60 px-3 text-xs font-semibold transition-[background-color,border-color,color,transform] hover:bg-card active:translate-y-px disabled:opacity-50"
-          >
-            Max
-          </button>
-        )}
       </div>
     </div>
   );

@@ -249,7 +249,7 @@ export function Prize() {
         </section>
       </div>
 
-      <details className="group product-subtle border-b-0">
+      <details className="group product-subtle">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
           <div>
             <span className="text-sm font-semibold">Demo sponsor controls</span>
@@ -298,7 +298,7 @@ export function Prize() {
         </div>
       </details>
 
-      <details className="group product-subtle mb-12">
+      <details className="group product-subtle mt-4 mb-12">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
           <div className="flex items-center gap-3">
             <CircleDot className="size-4" />

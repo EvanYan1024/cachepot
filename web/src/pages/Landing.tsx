@@ -81,14 +81,14 @@ export function Landing() {
           </div>
 
           <div className="absolute inset-x-4 bottom-4 grid gap-3 sm:inset-x-6 sm:bottom-6 lg:grid-cols-[1fr_auto] lg:items-end">
-            <div className="max-w-lg rounded-2xl border border-white/70 bg-white/74 p-5 text-neutral-900 shadow-[0_20px_45px_-28px_rgb(20_20_18/0.5)] backdrop-blur-xl sm:p-6">
+            <div className="max-w-lg rounded-xl border border-white/70 bg-white/74 p-5 text-neutral-900 shadow-[0_20px_45px_-28px_rgb(20_20_18/0.5)] backdrop-blur-xl sm:p-6">
               <p className="flex items-center gap-2 text-sm font-semibold"><CircleCheck className="size-4" /> Your principal stays yours</p>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
                 Yield funds the prize. Withdraw your deposited savings when you need them—without publishing your balance history.
               </p>
             </div>
 
-            <div className="min-w-72 rounded-2xl border border-white/70 bg-white/80 p-5 text-neutral-900 shadow-[0_20px_45px_-28px_rgb(20_20_18/0.5)] backdrop-blur-xl sm:min-w-80 sm:p-6">
+            <div className="min-w-72 rounded-xl border border-white/70 bg-white/80 p-5 text-neutral-900 shadow-[0_20px_45px_-28px_rgb(20_20_18/0.5)] backdrop-blur-xl sm:min-w-80 sm:p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs text-neutral-500">Live prize · Round {round.roundId?.toString() ?? "—"}</p>

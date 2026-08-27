@@ -59,7 +59,8 @@
 
 /* CachePot confidential utility system: soft product surfaces, ink actions and one yellow signal. */
 :root {
-    --radius: 1.25rem;
+    /* tuned against app.zama.org: cards 22px, controls 8-14px */
+    --radius: 0.875rem;
 
     --background: #eeeeef;
     --foreground: #252523;

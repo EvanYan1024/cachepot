@@ -27,7 +27,7 @@ function WrongNetworkBanner() {
   const { switchChain, isPending } = useSwitchChain();
   if (!wrong) return null;
   return (
-    <div className="mx-auto mt-4 flex max-w-[1240px] flex-wrap items-center gap-3 rounded-2xl border border-primary/45 bg-primary/15 px-4 py-3">
+    <div className="mx-auto mt-4 flex max-w-[1240px] flex-wrap items-center gap-3 rounded-xl border border-primary/45 bg-primary/15 px-4 py-3">
       <span className="text-sm">CachePot runs on Sepolia. Switch networks to resume private actions.</span>
       <Button size="sm" className="ml-auto" disabled={isPending} onClick={() => switchChain({ chainId: sepolia.id })}>
         {isPending ? "Switching…" : "Switch to Sepolia"}
@@ -111,7 +111,7 @@ export function Layout() {
       </a>
 
       <header className="sticky top-0 z-40 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4">
-        <div className="app-surface mx-auto flex h-16 max-w-[1240px] items-center rounded-2xl px-3 sm:px-4">
+        <div className="app-surface mx-auto flex h-16 max-w-[1240px] items-center rounded-xl px-3 sm:px-4">
           <Link to="/" className="group flex shrink-0 items-center gap-2.5">
             <span className="grid size-9 place-items-center rounded-xl bg-primary shadow-[0_8px_18px_rgb(255_217_26/0.24)]">
               <PotMark className="size-[18px] transition-transform duration-200 group-hover:-rotate-6" />
@@ -144,7 +144,7 @@ export function Layout() {
         </div>
 
         {mobileOpen && (
-          <div className="app-surface mx-auto mt-2 max-w-[1240px] rounded-2xl p-3 lg:hidden">
+          <div className="app-surface mx-auto mt-2 max-w-[1240px] rounded-xl p-3 lg:hidden">
             <Navigation mobile />
             <div className="mt-3 border-t border-border/70 pt-3"><WalletAction compact full /></div>
           </div>

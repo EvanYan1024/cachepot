@@ -27,7 +27,7 @@ export function AmountField({
       <label htmlFor={id} className="block text-sm font-medium text-foreground">
         {label}
       </label>
-      <div className="relative overflow-hidden rounded-2xl border border-white/70 bg-card/75 shadow-[0_18px_40px_-28px_rgb(20_20_18/0.35),inset_0_1px_0_rgb(255_255_255/0.8)] transition-[border-color,box-shadow] focus-within:border-foreground/25 focus-within:shadow-[0_22px_48px_-28px_rgb(20_20_18/0.44),0_0_0_3px_rgb(255_217_26/0.2)] dark:border-border">
+      <div className="relative overflow-hidden rounded-xl border border-white/70 bg-card/75 shadow-[0_18px_40px_-28px_rgb(20_20_18/0.35),inset_0_1px_0_rgb(255_255_255/0.8)] transition-[border-color,box-shadow] focus-within:border-foreground/25 focus-within:shadow-[0_22px_48px_-28px_rgb(20_20_18/0.44),0_0_0_3px_rgb(255_217_26/0.2)] dark:border-border">
         <Input
           id={id}
           type="number"
@@ -47,7 +47,7 @@ export function AmountField({
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(max)}
-                className="shrink-0 rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-foreground transition-[background-color,transform] hover:bg-muted active:translate-y-px disabled:opacity-50"
+                className="shrink-0 rounded-lg border border-border/70 bg-secondary px-3.5 py-1.5 text-xs font-semibold text-foreground transition-[background-color,transform] hover:bg-muted active:translate-y-px disabled:opacity-50"
               >
                 Max
               </button>

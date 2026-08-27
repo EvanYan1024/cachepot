@@ -155,6 +155,13 @@ export function Landing() {
         </div>
 
         <div className="product-panel mt-8 overflow-hidden">
+          <div className="hidden grid-cols-[1fr_.7fr_.85fr_.7fr_auto] gap-4 border-b border-border/70 bg-secondary/55 px-6 py-3 text-xs text-muted-foreground sm:grid">
+            <span>Asset</span>
+            <span>Savers</span>
+            <span>Prize input</span>
+            <span>Draw odds</span>
+            <span className="size-4" />
+          </div>
           <div className="divide-y divide-border/70">
             {stats.map((entry) => {
               const share = entry.contribution !== undefined && round.totalContribution

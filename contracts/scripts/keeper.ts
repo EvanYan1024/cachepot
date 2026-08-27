@@ -12,10 +12,10 @@ const VAULT_NAMES = ["CacheVault_cUSDT", "CacheVault_cUSDC", "CacheVault_cWETH"]
 // liquidator would call. ponytail: fixed drip per populated vault per round; swap for
 // a real harvest (Zama Earn / Aave) when a yield source exists.
 const YIELD_DRIP = 5_000_000n; // 5 USDT per populated vault per round
-// An idle round (nobody funded it) only gets simulated yield every few hours —
-// a full drip+draw cycle is ~9 transactions and a 600s cadence drains the gas
-// wallet in a day. Visitors can force a draw any time via the app's fund button.
-const IDLE_THROTTLE = 4 * 3600;
+// A full drip+draw cycle is ~9 transactions, so the keeper only drives a draw
+// every few hours regardless of the (much shorter) round period. Visitors are
+// never throttled: the round sits funded and closeable, one click away in the app.
+const CYCLE_THROTTLE = 4 * 3600;
 
 async function main() {
   // the plugin hooks estimateGas even for plain transactions; without this an
@@ -38,45 +38,54 @@ async function main() {
     `state=${state} totalContribution=${totalContribution} closeable_in=${Number(openedAt + period) - now}s`,
   );
 
-  if (state === 0n) {
-    if (now < Number(openedAt + period)) return console.log("round not due yet");
-    if (totalContribution === 0n && now - Number(openedAt) < IDLE_THROTTLE) {
-      return console.log(`idle round; next simulated yield in ${IDLE_THROTTLE - (now - Number(openedAt))}s`);
-    }
-    // drip per vault: any populated vault still without odds gets one, so an
-    // external sponsor funding one vault cannot starve the others for the round
+  /// Simulated yield leg: fund every populated vault that still has no odds this
+  /// round, so an external sponsor funding one vault cannot starve the others.
+  async function dripYield(): Promise<boolean> {
     const dry = [];
     for (const vault of vaults) {
       const address = await vault.getAddress();
       if ((await vault.participantCount()) > 0n && (await pool.contribution(address)) === 0n) dry.push(address);
     }
-    if (dry.length > 0) {
-      const underlying = new ethers.Contract(
-        await pool.underlying(),
-        [
-          "function mint(address to, uint256 amount)",
-          "function approve(address, uint256) returns (bool)",
-          "function allowance(address, address) view returns (uint256)",
-        ],
-        signer,
-      );
-      const total = YIELD_DRIP * BigInt(dry.length);
-      console.log(`simulating yield: contributing ${YIELD_DRIP} to each of ${dry.length} vault(s)`);
-      await (await underlying.mint(signer.address, total)).wait();
-      const poolAddress = await pool.getAddress();
-      // USDT-style approve guard: a non-zero allowance (left dangling by a crashed
-      // run) must be reset to zero before it can be set again
-      if ((await underlying.allowance(signer.address, poolAddress)) > 0n) {
-        await (await underlying.approve(poolAddress, 0)).wait();
-      }
-      await (await underlying.approve(poolAddress, total)).wait();
-      for (const address of dry) {
-        await (await pool.contribute(address, YIELD_DRIP)).wait();
-      }
+    if (dry.length === 0) return false;
+    const underlying = new ethers.Contract(
+      await pool.underlying(),
+      [
+        "function mint(address to, uint256 amount)",
+        "function approve(address, uint256) returns (bool)",
+        "function allowance(address, address) view returns (uint256)",
+      ],
+      signer,
+    );
+    const total = YIELD_DRIP * BigInt(dry.length);
+    console.log(`simulating yield: contributing ${YIELD_DRIP} to each of ${dry.length} vault(s)`);
+    await (await underlying.mint(signer.address, total)).wait();
+    const poolAddress = await pool.getAddress();
+    // USDT-style approve guard: a non-zero allowance (left dangling by a crashed
+    // run) must be reset to zero before it can be set again
+    if ((await underlying.allowance(signer.address, poolAddress)) > 0n) {
+      await (await underlying.approve(poolAddress, 0)).wait();
     }
-    if ((await pool.totalContribution()) === 0n) return console.log("no participants anywhere, nothing to draw");
-    console.log("closing round…");
-    await (await pool.closeRound()).wait();
+    await (await underlying.approve(poolAddress, total)).wait();
+    for (const address of dry) {
+      await (await pool.contribute(address, YIELD_DRIP)).wait();
+    }
+    return true;
+  }
+
+  // draw only when the round is due AND the keeper's own cadence allows it; either
+  // way the pass continues to prefunding and Earn claims below
+  const due = now >= Number(openedAt + period);
+  const throttled = now - Number(openedAt) < CYCLE_THROTTLE;
+  if (state === 0n && due && !throttled) {
+    if (totalContribution === 0n) await dripYield(); // fallback: nobody prefunded it
+    if ((await pool.totalContribution()) > 0n) {
+      console.log("closing round…");
+      await (await pool.closeRound()).wait();
+    } else {
+      console.log("no participants anywhere, nothing to draw");
+    }
+  } else if (state === 0n) {
+    console.log(due ? `throttled; next keeper draw in ${CYCLE_THROTTLE - (now - Number(openedAt))}s` : "round not due yet");
   }
 
   const roundId = await pool.roundId();
@@ -117,6 +126,14 @@ async function main() {
       console.log(`still drawing; grace ends in ${closedAt + grace - BigInt(block!.timestamp)}s`);
     }
   }
+  // Prefund the freshly opened round so the interface always shows a live prize and
+  // real vault odds. Contributions are consumed by the draw, so a round funded only
+  // at closing time would read as an empty pot for its entire life.
+  if ((await pool.state()) === 0n && (await pool.totalContribution()) === 0n) {
+    console.log("prefunding the next round…");
+    await dripYield();
+  }
+
   // claim any finalized Earn batches — deposit AND redeem — for wired vaults; the
   // claim is permissionless and lands the tokens directly in the vault. Claiming an
   // already-claimed batch SUCCEEDS on the real batcher (it transfers an encrypted

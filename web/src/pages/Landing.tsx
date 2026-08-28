@@ -7,13 +7,17 @@ import { formatAmount } from "@/lib/contracts";
 import { formatCountdown } from "@/hooks/useNow";
 import { usePrizeAmount, useRound, useVaultStats, useWrongNetwork } from "@/hooks/usePool";
 
-const PUBLIC = ["Prize reserve", "Round schedule", "Vault odds", "Draw transactions"];
-const SEALED = ["Deposit amounts", "Personal odds", "Winning vault", "Winning wallet"];
+const PUBLIC = ["Prize reserve", "Round schedule", "Vault odds", "Draw transactions", "Principal sent to Earn"];
+const SEALED = ["Deposit amounts", "Personal odds", "Winning vault", "Winning wallet", "Earn position size"];
 
 const STEPS = [
   {
     title: "Choose a vault",
     copy: "Deposit cUSDT, cUSDC, or cWETH. Your principal remains withdrawable and never becomes the prize.",
+  },
+  {
+    title: "Put the principal to work",
+    copy: "Idle deposits are custodied in Zama's Confidential Vault — the rails behind Zama Earn — where only a batch total is ever decrypted.",
   },
   {
     title: "Build private odds",

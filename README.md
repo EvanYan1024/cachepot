@@ -86,7 +86,7 @@ Four properties make this safe:
 - **Withdrawals degrade, never lose**: `withdraw` clamps to what the buffer actually holds (`FHE.min` against the vault's own confidential balance), so a swept-out vault can never silently burn a user's ledger — covered by a dedicated red-green test.
 - **Batches cannot be griefed or stranded**: rescuing a *canceled* batch via `quitEarn` is permissionless, while quitting a still-*pending* one — which would undo the deployment — is reserved for the strategist.
 
-The Sepolia Earn market pays no interest (its mock ERC-4626 sits at a 1.0 exchange rate), so prizes are still funded by the keeper's simulated yield leg through the same `contribute()` a production liquidator would call. On mainnet the identical wiring earns real Morpho yield.
+The Sepolia Earn market accrues nothing — its ERC-4626 has stayed at an exact 1.0 exchange rate, with `totalAssets` and `totalSupply` moving only in lockstep with deposits, and every settled batch pricing at exactly 1.000000. So prizes are still funded by the keeper's simulated yield leg, through the same `contribute()` a production liquidator would call. On mainnet the identical wiring earns real Morpho yield.
 
 ## Deployed on Sepolia
 

@@ -33,7 +33,7 @@
 - 抽奖全流程链上可审计，无管理员干预路径
 
 **非目标（明确砍掉，README 说明生产路线）**
-- 真实收益率：本金已托管进 Zama Confidential Vault（Earn 的同一套批处理器，§8.3），但 Sepolia 那个 ERC-4626 汇率钉在 1.0 不生息，奖金仍由 keeper 模拟注入；主网同一套接线即真实 Morpho 收益
+- 真实收益率：本金已托管进 Zama Confidential Vault（Earn 的同一套批处理器，§8.3），但 Sepolia 那个 ERC-4626 实测不产生利息（§8.3 附数据），奖金仍由 keeper 模拟注入；主网同一套接线即真实 Morpho 收益
 - PoolTogether V5 的 TPDA 收益拍卖、VRGDA 领奖激励、自适应 prize tier、多 vault——均为 hyperstructure 包袱，与保密卖点无关
 - 多链部署、治理、协议费
 
@@ -363,7 +363,16 @@ CacheVault(cUSDC) ──sweepToEarn──> DepositVaultBatcher ──(只解密�
 | 取款只降级、不丢钱 | `withdraw` 三重钳制 `FHE.min(请求额, 账本余额, 金库实际持币)`。本金外流后缓冲不足时，转账按缓冲上限成交、账本同步扣减，绝不会出现"账本烧了钱没到"（C4 的静默转零） |
 | 批次不能被灰化或滞留 | `quitEarn` 对 **Canceled** 批次无权限（任何人可救援），对 **Pending** 批次仅限 strategist——真实 batcher 的 `quit` 两种状态都放行，不做这个区分就等于给了任何人反复撤销本金部署的口子 |
 
-**当前边界（诚实声明）**：Sepolia 那个 4626 汇率钉在 1.0，**不产生利息**，所以奖金仍由 keeper 模拟注入、走与生产清算者完全相同的 `contribute()`。收益闭环缺的第三条腿——cShare 估值、`shares × rate − 本金` 算超额、赎回并 harvest——留给主网（正是赛题「further development + OZ 审计」那条路）。
+**当前边界（诚实声明）**：Sepolia 的 4626 **实测不产生利息**，所以奖金仍由 keeper 模拟注入、走与生产清算者完全相同的 `contribute()`。收益闭环缺的第三条腿——cShare 估值、`shares × rate − 本金` 算超额、赎回并 harvest——留给主网（正是赛题「further development + OZ 审计」那条路）。
+
+实测依据（`0x6AB5…f864C`，两次采样间隔 5 天）：
+
+| 采样 | totalAssets | totalSupply | 汇率 |
+|---|---|---|---|
+| 2026-08-23 | 1,015,947.210278 USDC | 1,015,947.210278 shares | 1.000000 |
+| 2026-08-28 | 1,016,030.320278 USDC | 1,016,030.320278 shares | 1.000000 |
+
+资产与份额**等量同增**（+83.11），说明增量全部来自新存款而非利息累积；另查最近 8 个已结算批次，`exchangeRate` 一律是 `1000000`（精确 1.0）无漂移。
 
 **Sepolia 已验证**（`scripts/earn-probe.ts` / `earn-claim.ts`）：白名单 gate 不拦任意地址；join 后存款句柄可自解密核对金额；批龄 1 小时后 dispatch/结算无权限；`claim` 后 cShare 确实落在金库地址上。
 

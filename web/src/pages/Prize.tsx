@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Check, ChevronDown, CircleDot, Gavel } from "lucide-react";
+import { Check, ChevronDown, CircleDot, Gavel, History, Lock } from "lucide-react";
 import { useAccount } from "wagmi";
 import { AmountField } from "@/components/AmountField";
 import { PageHead } from "@/components/Layout";
 import { PrizeAmount } from "@/components/PrizeAmount";
 import { TokenIcon } from "@/components/TokenIcon";
 import { Button } from "@/components/ui/button";
-import { VAULTS, parseAmount } from "@/lib/contracts";
+import { VAULTS, findVault, formatAmount, parseAmount } from "@/lib/contracts";
 import { formatCountdown } from "@/hooks/useNow";
-import { usePoolActions, usePrizeAmount, useRound, useVaultStats, useWrongNetwork } from "@/hooks/usePool";
+import { useDrawHistory, usePoolActions, usePrizeAmount, useRound, useVaultStats, useWrongNetwork } from "@/hooks/usePool";
 import { useTx } from "@/hooks/useTx";
 
 const ALGORITHM = [
@@ -43,6 +43,7 @@ const HCU = [
 export function Prize() {
   const round = useRound();
   const stats = useVaultStats();
+  const history = useDrawHistory();
   const prize = usePrizeAmount(round.reserveHandle);
   const actions = usePoolActions();
   const { busy, run } = useTx();
@@ -249,6 +250,88 @@ export function Prize() {
         </section>
       </div>
 
+      <section className="product-subtle mb-6 overflow-hidden">
+        <div className="flex items-center justify-between gap-4 px-5 py-4">
+          <div>
+            <span className="text-sm font-semibold">Past draws</span>
+            <span className="ml-3 hidden text-xs text-muted-foreground sm:inline">
+              Every draw is replayable from events — only the outcome stays sealed
+            </span>
+          </div>
+          <History className="size-4 shrink-0 text-muted-foreground" />
+        </div>
+        <div className="overflow-x-auto border-t border-border">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-muted-foreground">
+                <th className="px-5 py-3 font-medium">Round</th>
+                <th className="px-5 py-3 font-medium">Closed</th>
+                <th className="px-5 py-3 text-right font-medium">Yield in</th>
+                <th className="px-5 py-3 font-medium">Vaults</th>
+                <th className="px-5 py-3 font-medium">Winner</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border border-t border-border">
+              {(history.data ?? []).map((record) => (
+                <tr key={record.roundId.toString()}>
+                  <td className="px-5 py-3">
+                    <a
+                      href={`https://sepolia.etherscan.io/tx/${record.closeTx}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono tabular underline decoration-border underline-offset-4 hover:decoration-foreground"
+                    >
+                      #{record.roundId.toString()}
+                    </a>
+                  </td>
+                  <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
+                    {record.closedAt !== undefined ? formatWhen(record.closedAt) : "—"}
+                  </td>
+                  <td className="px-5 py-3 text-right font-mono tabular whitespace-nowrap">
+                    {formatAmount(record.contributed)} USDT
+                  </td>
+                  <td className="px-5 py-3 whitespace-nowrap text-muted-foreground">
+                    {record.vaults.map((vault) => findVault(vault)?.symbol ?? `${vault.slice(0, 6)}…`).join(" · ") || "—"}
+                    {record.skipped.length > 0 && (
+                      <span className="ml-2 text-xs">+{record.skipped.length} skipped</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3 whitespace-nowrap">
+                    {record.drawn ? (
+                      <span className="status-chip">
+                        <Lock className="size-3" /> Sealed
+                      </span>
+                    ) : (
+                      <span className="status-chip border-primary bg-primary/15 text-foreground">
+                        <span className="size-1.5 animate-pulse rounded-full bg-primary" /> Drawing
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {history.data?.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">
+                    No draws yet — the first round is still accruing.
+                  </td>
+                </tr>
+              )}
+              {history.data === undefined && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-6 text-center text-muted-foreground">
+                    Loading draw history…
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <p className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
+          A completed draw credits every saver homomorphically — whether the prize was won or rolled over is itself
+          encrypted, so no history page (including this one) can reveal it.
+        </p>
+      </section>
+
       <details className="group product-subtle">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
           <div>
@@ -339,6 +422,15 @@ export function Prize() {
       </div>
     </>
   );
+}
+
+function formatWhen(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

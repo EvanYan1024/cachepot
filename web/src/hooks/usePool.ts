@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDecryptValues, useEncrypt, useGrantPermit, useHasPermit, useZamaSDK } from "@zama-fhe/react-sdk";
 import { useAccount, usePublicClient, useReadContracts, useWriteContract } from "wagmi";
-import { parseAbiItem, type ContractFunctionParameters } from "viem";
+import { parseAbiItem, type AbiEvent, type ContractFunctionParameters, type GetLogsReturnType } from "viem";
 import { sepolia } from "wagmi/chains";
 import { toast } from "sonner";
 import {
   BATCH_SIZE,
   POOL_ADDRESS,
+  POOL_DEPLOY_BLOCK,
   PRIZE_VAULT,
   VAULTS,
   ZERO_HANDLE,
@@ -96,6 +97,25 @@ export function useVaultStats(): VaultStats[] {
 
 const SWEPT_EVENT = parseAbiItem("event SweptToEarn(uint64 requested)");
 
+const LOG_CHUNK = 45_000n; // publicnode caps eth_getLogs ranges at 50k blocks
+
+/// Walk an unbounded log query in RPC-sized slices; the deploy-block ranges here
+/// outgrew the provider's range cap about a week after deployment.
+async function getLogsChunked<const TEvents extends readonly AbiEvent[]>(
+  client: NonNullable<ReturnType<typeof usePublicClient>>,
+  address: `0x${string}`,
+  events: TEvents,
+  fromBlock: bigint,
+): Promise<GetLogsReturnType<undefined, TEvents, true>> {
+  const latest = await client.getBlockNumber();
+  const logs = [] as unknown as GetLogsReturnType<undefined, TEvents, true>;
+  for (let start = fromBlock; start <= latest; start += LOG_CHUNK) {
+    const end = start + LOG_CHUNK - 1n > latest ? latest : start + LOG_CHUNK - 1n;
+    logs.push(...(await client.getLogs({ address, events, fromBlock: start, toBlock: end, strict: true })));
+  }
+  return logs;
+}
+
 /// Public trail of the vault's Zama Earn position: sweep amounts are plaintext
 /// events, and a non-zero cShare balance handle proves the position exists —
 /// while the position size itself stays confidential.
@@ -117,12 +137,8 @@ export function useEarnStats(meta: VaultMeta) {
   const swept = useQuery({
     queryKey: ["earn-swept", meta.vault],
     queryFn: async () => {
-      const logs = await publicClient!.getLogs({
-        address: meta.vault,
-        event: SWEPT_EVENT,
-        fromBlock: meta.earn!.fromBlock,
-      });
-      return logs.reduce((sum, log) => sum + (log.args.requested ?? 0n), 0n);
+      const logs = await getLogsChunked(publicClient!, meta.vault, [SWEPT_EVENT] as const, meta.earn!.fromBlock);
+      return logs.reduce((sum, log) => sum + log.args.requested, 0n);
     },
     enabled: enabled && !!publicClient,
     refetchInterval: 60_000,
@@ -132,6 +148,67 @@ export function useEarnStats(meta: VaultMeta) {
     sweptTotal: swept.data,
     hasPosition: !!shareHandle && shareHandle !== ZERO_HANDLE,
   };
+}
+
+const ROUND_EVENTS = [
+  parseAbiItem("event RoundClosed(uint256 indexed roundId, uint256 totalContribution)"),
+  parseAbiItem("event RoundAwarded(uint256 indexed roundId)"),
+  parseAbiItem("event VaultFinished(uint256 indexed roundId, address indexed vault)"),
+  parseAbiItem("event VaultSkipped(uint256 indexed roundId, address indexed vault)"),
+] as const;
+
+export type DrawRecord = {
+  roundId: bigint;
+  contributed: bigint; // the round's plaintext yield contributions
+  closedAt: number | undefined; // block timestamp of the close
+  closeTx: `0x${string}`;
+  drawn: boolean; // scan completed — whether anyone was paid stays encrypted on-chain
+  vaults: `0x${string}`[]; // vaults scanned to completion
+  skipped: `0x${string}`[];
+};
+
+const HISTORY_LIMIT = 10;
+
+/// Public draw log rebuilt from pool events. Deliberately thin: RoundAwarded fires
+/// even when the prize rolls over, because "did anyone win" is itself a ciphertext.
+export function useDrawHistory() {
+  const publicClient = usePublicClient();
+  return useQuery({
+    queryKey: ["draw-history"],
+    queryFn: async (): Promise<DrawRecord[]> => {
+      const logs = await getLogsChunked(publicClient!, POOL_ADDRESS, ROUND_EVENTS, POOL_DEPLOY_BLOCK);
+      const rounds = new Map<bigint, DrawRecord & { block?: bigint }>();
+      for (const log of logs) {
+        const roundId = log.args.roundId;
+        let row = rounds.get(roundId);
+        if (!row) {
+          row = { roundId, contributed: 0n, closedAt: undefined, closeTx: log.transactionHash, drawn: false, vaults: [], skipped: [] };
+          rounds.set(roundId, row);
+        }
+        if (log.eventName === "RoundClosed") {
+          row.contributed = log.args.totalContribution;
+          row.closeTx = log.transactionHash;
+          row.block = log.blockNumber;
+        } else if (log.eventName === "RoundAwarded") row.drawn = true;
+        else if (log.eventName === "VaultSkipped") row.skipped.push(log.args.vault);
+        else row.vaults.push(log.args.vault);
+      }
+      const rows = [...rounds.values()]
+        .sort((a, b) => (a.roundId < b.roundId ? 1 : -1))
+        .slice(0, HISTORY_LIMIT);
+      const blocks = await Promise.all(
+        rows.map((row) => (row.block !== undefined ? publicClient!.getBlock({ blockNumber: row.block }) : undefined)),
+      );
+      return rows.map((row, i) => ({
+        ...row,
+        closedAt: blocks[i] ? Number(blocks[i]!.timestamp) : undefined,
+        // skipVault emits VaultFinished too; keep skipped vaults out of the scanned list
+        vaults: row.vaults.filter((vault) => !row.skipped.includes(vault)),
+      }));
+    },
+    enabled: !!publicClient,
+    refetchInterval: 120_000,
+  });
 }
 
 /// Derived round clock, shared by the prize page and the landing teaser.

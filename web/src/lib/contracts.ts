@@ -1,5 +1,6 @@
 export const POOL_ADDRESS = (import.meta.env.VITE_POOL_ADDRESS ??
   "0x1C76078391451fC60b82f529CC9c22970CEdD488") as `0x${string}`;
+export const POOL_DEPLOY_BLOCK = 11554478n; // start of the public round-event trail
 
 export type EarnMeta = {
   depositBatcher: `0x${string}`; // Zama Confidential Vault deposit batcher

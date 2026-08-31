@@ -146,7 +146,7 @@ async function main() {
     "event Claimed(uint256 indexed batchId, address indexed account, bytes32 amount)",
   ];
   const BATCH_WINDOW = 24n; // ids to scan back from the current batch (~1 day)
-  const LOOKBACK_BLOCKS = 50_000n; // ~1 week of Sepolia blocks, covers the window
+  const LOOKBACK_BLOCKS = 45_000n; // ~1 week of Sepolia blocks; stays under RPC 50k getLogs range caps
   const latestBlock = BigInt(await ethers.provider.getBlockNumber());
   for (const vault of vaults) {
     let batchers: string[];

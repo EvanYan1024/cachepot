@@ -22,7 +22,7 @@ const sepoliaAccounts = DEPLOYER_PRIVATE_KEY
   : { mnemonic: MNEMONIC, path: "m/44'/60'/0'/0/", count: 10 };
 const sepoliaUrl = INFURA_API_KEY
   ? `https://sepolia.infura.io/v3/${INFURA_API_KEY}`
-  : "https://ethereum-sepolia-rpc.publicnode.com";
+  : "https://sepolia.gateway.tenderly.co"; // publicnode silently truncates old eth_getLogs
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",

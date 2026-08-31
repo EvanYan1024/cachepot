@@ -260,15 +260,15 @@ export function Prize() {
           </div>
           <History className="size-4 shrink-0 text-muted-foreground" />
         </div>
-        <div className="overflow-x-auto border-t border-border">
+        <div className="max-h-[26rem] overflow-auto border-t border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-muted-foreground">
-                <th className="px-5 py-3 font-medium">Round</th>
-                <th className="px-5 py-3 font-medium">Closed</th>
-                <th className="px-5 py-3 text-right font-medium">Yield in</th>
-                <th className="px-5 py-3 font-medium">Vaults</th>
-                <th className="px-5 py-3 font-medium">Winner</th>
+                <th className="sticky top-0 bg-card px-5 py-3 font-medium">Round</th>
+                <th className="sticky top-0 bg-card px-5 py-3 font-medium">Closed</th>
+                <th className="sticky top-0 bg-card px-5 py-3 text-right font-medium">Yield in</th>
+                <th className="sticky top-0 bg-card px-5 py-3 font-medium">Vaults</th>
+                <th className="sticky top-0 bg-card px-5 py-3 font-medium">Winner</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border border-t border-border">
@@ -424,12 +424,14 @@ export function Prize() {
   );
 }
 
+// the interface is English-only, so pin the locale instead of leaking the browser's
 function formatWhen(timestamp: number): string {
-  return new Date(timestamp * 1000).toLocaleString(undefined, {
+  return new Date(timestamp * 1000).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 }
 

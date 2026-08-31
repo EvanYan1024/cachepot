@@ -121,6 +121,7 @@ async function getLogsChunked<const TEvents extends readonly AbiEvent[]>(
 /// while the position size itself stays confidential.
 export function useEarnStats(meta: VaultMeta) {
   const publicClient = usePublicClient();
+  const queryClient = useQueryClient();
   const enabled = !!meta.earn;
   const { data } = useReadContracts({
     contracts: [
@@ -138,7 +139,11 @@ export function useEarnStats(meta: VaultMeta) {
     queryKey: ["earn-swept", meta.vault],
     queryFn: async () => {
       const logs = await getLogsChunked(publicClient!, meta.vault, [SWEPT_EVENT] as const, meta.earn!.fromBlock);
-      return logs.reduce((sum, log) => sum + log.args.requested, 0n);
+      const total = logs.reduce((sum, log) => sum + log.args.requested, 0n);
+      // sweeps are append-only, so the running total is monotonic — this rides out
+      // RPC backends whose thin log index silently drops older events
+      const previous = queryClient.getQueryData<bigint>(["earn-swept", meta.vault]) ?? 0n;
+      return total > previous ? total : previous;
     },
     enabled: enabled && !!publicClient,
     refetchInterval: 60_000,
@@ -167,7 +172,7 @@ export type DrawRecord = {
   skipped: `0x${string}`[];
 };
 
-const HISTORY_LIMIT = 10;
+const HISTORY_LIMIT = 60; // timestamp fetches are per-round; bounds them as history grows
 
 /// Public draw log rebuilt from pool events. Deliberately thin: RoundAwarded fires
 /// even when the prize rolls over, because "did anyone win" is itself a ciphertext.
@@ -176,7 +181,10 @@ export function useDrawHistory() {
   return useQuery({
     queryKey: ["draw-history"],
     queryFn: async (): Promise<DrawRecord[]> => {
-      const logs = await getLogsChunked(publicClient!, POOL_ADDRESS, ROUND_EVENTS, POOL_DEPLOY_BLOCK);
+      const [logs, currentRound] = await Promise.all([
+        getLogsChunked(publicClient!, POOL_ADDRESS, ROUND_EVENTS, POOL_DEPLOY_BLOCK),
+        publicClient!.readContract({ address: POOL_ADDRESS, abi: poolAbi, functionName: "roundId" }),
+      ]);
       const rounds = new Map<bigint, DrawRecord & { block?: bigint }>();
       for (const log of logs) {
         const roundId = log.args.roundId;
@@ -193,6 +201,12 @@ export function useDrawHistory() {
         else if (log.eventName === "VaultSkipped") row.skipped.push(log.args.vault);
         else row.vaults.push(log.args.vault);
       }
+      // publicnode load-balances across backends with unequal log-index depth; a
+      // short one silently truncates old chunks. roundId counts every closed round
+      // (it starts at 0), so fewer reconstructed rounds means truncated logs.
+      if (BigInt(rounds.size) < currentRound) {
+        throw new Error(`incomplete event logs: got ${rounds.size} of ${currentRound} rounds`);
+      }
       const rows = [...rounds.values()]
         .sort((a, b) => (a.roundId < b.roundId ? 1 : -1))
         .slice(0, HISTORY_LIMIT);
@@ -207,7 +221,8 @@ export function useDrawHistory() {
       }));
     },
     enabled: !!publicClient,
-    refetchInterval: 120_000,
+    refetchInterval: 300_000,
+    retry: 5, // each retry re-rolls the RPC backend lottery; a good one answers fully
   });
 }
 

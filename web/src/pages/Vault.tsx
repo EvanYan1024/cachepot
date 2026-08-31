@@ -115,7 +115,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
                   <span className="flex items-center gap-2">
                     {mode === "deposit" ? "In wallet" : "Your position"}
                     <span className="font-mono text-foreground tabular">
-                      <Veil sealed={!position.hasPermit} loading={position.hasPermit && available === undefined} handle={availableHandle} className="h-4 w-20">
+                      <Veil sealed={!position.hasPermit} loading={position.hasPermit && available === undefined} handle={availableHandle}>
                         {available !== undefined ? formatAmount(available) : "0"} {meta.symbol}
                       </Veil>
                     </span>
@@ -241,7 +241,7 @@ function BalanceCell({ label, value, handle, symbol, permit }: { label: string; 
     <div className="min-h-24 border-t border-border/70 p-5">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-3 font-mono text-xl tabular">
-        <Veil sealed={!permit} loading={permit && value === undefined} handle={handle} className="h-7 w-36">
+        <Veil sealed={!permit} loading={permit && value === undefined} handle={handle}>
           {value !== undefined ? formatAmount(value) : "0"} {symbol}
         </Veil>
       </div>

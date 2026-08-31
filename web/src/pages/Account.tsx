@@ -58,7 +58,7 @@ export function Account() {
                 Confidential prize balance
               </div>
               <div className="numeral mt-4 text-4xl leading-none sm:text-5xl">
-                <Veil sealed={false} loading={position.prizeBalance === undefined} handle={position.prizeBalanceHandle} className="h-12 w-48">
+                <Veil sealed={false} loading={position.prizeBalance === undefined} handle={position.prizeBalanceHandle}>
                   {position.prizeBalance !== undefined ? formatAmount(position.prizeBalance) : "0"}
                   <span className="ml-2 text-base font-medium tracking-normal text-muted-foreground">cUSDT</span>
                 </Veil>
@@ -225,7 +225,7 @@ function PositionValue({ label, value, handle, symbol }: { label: string; value?
     <div className="md:text-right">
       <div className="text-xs text-muted-foreground md:hidden">{label}</div>
       <div className="mt-1 font-mono text-sm tabular md:mt-0">
-        <Veil sealed={false} loading={value === undefined} handle={handle} className="h-5 w-24">
+        <Veil sealed={false} loading={value === undefined} handle={handle}>
           {value !== undefined ? formatAmount(value) : "0"} <span className="text-xs text-muted-foreground">{symbol}</span>
         </Veil>
       </div>

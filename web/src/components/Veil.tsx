@@ -11,23 +11,17 @@ type VeilProps = {
   children: ReactNode;
 };
 
-/// A value that lives on-chain as ciphertext. Sealed values use a consistent
-/// privacy placeholder; technical handles live in progressive disclosure.
+/// A value that lives on-chain as ciphertext. Sealed values render as a bare
+/// asterisk mask inheriting the surrounding type, matching app.zama.org.
 export function Veil({ sealed, loading, handle, className, children }: VeilProps) {
   if (sealed || loading) {
     return (
       <span
         role="img"
         aria-label={loading ? "Decrypting" : "Encrypted value"}
-        className={cn(
-          "relative inline-flex select-none items-center overflow-hidden rounded-sm border border-border bg-accent align-middle",
-          loading && "animate-pulse",
-          className,
-        )}
+        className={cn("select-none tracking-wider", loading && "animate-pulse", className)}
       >
-        <span className="relative truncate px-2 font-mono text-xs leading-none tracking-[0.16em] text-muted-foreground">
-          {loading ? "······" : "••••••"}
-        </span>
+        ******
       </span>
     );
   }

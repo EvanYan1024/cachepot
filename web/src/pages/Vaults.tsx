@@ -105,7 +105,7 @@ export function Vaults() {
                       sealed={!position.hasPermit}
                       loading={position.hasPermit && myPosition?.balance === undefined}
                       handle={myPosition?.balanceHandle}
-                      className="h-5 min-w-24"
+                      className="font-mono text-sm tabular"
                     >
                       <span className="font-mono text-sm tabular">
                         {myPosition?.balance !== undefined ? formatAmount(myPosition.balance) : "0"} {meta.symbol}

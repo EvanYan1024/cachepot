@@ -174,6 +174,7 @@ export type DrawRecord = {
 };
 
 const HISTORY_LIMIT = 60; // timestamp fetches are per-round; bounds them as history grows
+const blockTsCache = new Map<bigint, number>(); // block number → timestamp, immutable
 
 /// Public draw log rebuilt from pool events. Deliberately thin: RoundAwarded fires
 /// even when the prize rolls over, because "did anyone win" is itself a ciphertext.
@@ -213,12 +214,21 @@ export function useDrawHistory() {
       const rows = [...rounds.values()]
         .sort((a, b) => (a.roundId < b.roundId ? 1 : -1))
         .slice(0, HISTORY_LIMIT);
-      const blocks = await Promise.all(
-        rows.map((row) => (row.block !== undefined ? publicClient!.getBlock({ blockNumber: row.block }) : undefined)),
+      // block timestamps are immutable — resolve each block number once, ever
+      const stamps = await Promise.all(
+        rows.map(async (row) => {
+          if (row.block === undefined) return undefined;
+          let ts = blockTsCache.get(row.block);
+          if (ts === undefined) {
+            ts = Number((await publicClient!.getBlock({ blockNumber: row.block })).timestamp);
+            blockTsCache.set(row.block, ts);
+          }
+          return ts;
+        }),
       );
       return rows.map((row, i) => ({
         ...row,
-        closedAt: blocks[i] ? Number(blocks[i]!.timestamp) : undefined,
+        closedAt: stamps[i],
         // skipVault emits VaultFinished too; keep skipped vaults out of the scanned list
         vaults: row.vaults.filter((vault) => !row.skipped.includes(vault)),
       }));
@@ -370,6 +380,7 @@ export function usePosition() {
 export type WinRecord = { roundId: bigint; closedAt: number | undefined; amount: bigint };
 
 const WIN_WINDOW = 24; // rounds of personal history to reconstruct per visit
+const snapshotCache = new Map<string, `0x${string}`>(); // "address:roundId" → immutable handle
 
 /// Personal win history, rebuilt without any on-chain record of it: the pool grants
 /// the user permanent decrypt rights on every historical prize-balance handle, so
@@ -389,22 +400,37 @@ export function useWinHistory() {
 
   const snapshots = useQuery({
     queryKey: ["win-history", address, drawn.at(-1)?.roundId.toString()],
-    queryFn: async () =>
-      await Promise.all(
-        drawn.map(async (record) => ({
-          roundId: record.roundId,
-          closedAt: record.closedAt,
-          handle: (await publicClient!.readContract({
-            address: POOL_ADDRESS,
-            abi: poolAbi,
-            functionName: "prizeBalanceOf",
-            args: [address!],
-            blockNumber: record.awardBlock,
-          })) as `0x${string}`,
-        })),
-      ),
+    queryFn: async () => {
+      const out = [];
+      // historical state is immutable: every fetched handle goes into the module
+      // cache, so a new round costs one archive read, not a re-sweep — and small
+      // chunks keep the burst under the public gateway's rate limit
+      for (let i = 0; i < drawn.length; i += 4) {
+        out.push(
+          ...(await Promise.all(
+            drawn.slice(i, i + 4).map(async (record) => {
+              const key = `${address}:${record.roundId}`;
+              let handle = snapshotCache.get(key);
+              if (!handle) {
+                handle = (await publicClient!.readContract({
+                  address: POOL_ADDRESS,
+                  abi: poolAbi,
+                  functionName: "prizeBalanceOf",
+                  args: [address!],
+                  blockNumber: record.awardBlock,
+                })) as `0x${string}`;
+                snapshotCache.set(key, handle);
+              }
+              return { roundId: record.roundId, closedAt: record.closedAt, handle };
+            }),
+          )),
+        );
+      }
+      return out;
+    },
     enabled: !!address && !!publicClient && drawn.length > 1,
-    staleTime: 60_000,
+    staleTime: Infinity,
+    retry: 2,
   });
 
   const sealedHandles = [...new Set((snapshots.data ?? []).map((s) => s.handle).filter((h) => h !== ZERO_HANDLE))];

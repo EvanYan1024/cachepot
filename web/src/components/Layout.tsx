@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ExternalLink, Home, Menu, PiggyBank, Trophy, WalletCards, X } from "lucide-react";
+import { BookOpen, ExternalLink, Home, Menu, PiggyBank, Trophy, WalletCards, X } from "lucide-react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
@@ -16,6 +16,7 @@ const NAV = [
   { to: "/vaults", label: "Save", icon: PiggyBank },
   { to: "/prize", label: "Draw", icon: Trophy },
   { to: "/account", label: "Portfolio", icon: WalletCards },
+  { to: "/docs", label: "Docs", icon: BookOpen },
 ];
 
 function scan(address: string) {
@@ -76,15 +77,6 @@ function Navigation({ mobile = false }: { mobile?: boolean }) {
           {item.label}
         </NavLink>
       ))}
-      <Link
-        to="/#how-it-works"
-        className={cn(
-          "flex h-10 items-center rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
-          mobile && "h-11",
-        )}
-      >
-        How it works
-      </Link>
     </nav>
   );
 }

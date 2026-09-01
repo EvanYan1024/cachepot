@@ -129,9 +129,14 @@ export function Landing() {
           <p className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
             CachePot separates what the protocol must prove from what the public needs to know. The draw stays auditable while saver data stays encrypted.
           </p>
-          <Button render={<Link to="/vaults" />} variant="outline" size="lg" className="mt-7">
-            Explore vaults <ArrowRight className="size-4" />
-          </Button>
+          <div className="mt-7 flex flex-wrap items-center gap-5">
+            <Button render={<Link to="/vaults" />} variant="outline" size="lg">
+              Explore vaults <ArrowRight className="size-4" />
+            </Button>
+            <Link to="/docs" className="inline-flex items-center gap-2 text-sm font-medium hover:underline">
+              Read the protocol docs <ArrowRight className="size-4" />
+            </Link>
+          </div>
         </div>
 
         <ol className="mt-12 border-t border-border lg:mt-0">

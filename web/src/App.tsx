@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Account } from "@/pages/Account";
+import { Docs } from "@/pages/Docs";
 import { Landing } from "@/pages/Landing";
 import { Prize } from "@/pages/Prize";
 import { Vault } from "@/pages/Vault";
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="deposit" element={<Navigate to="/vaults" replace />} />
         <Route path="prize" element={<Prize />} />
         <Route path="account" element={<Account />} />
+        <Route path="docs" element={<Docs />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

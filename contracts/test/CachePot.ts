@@ -265,7 +265,7 @@ describe("CachePot", function () {
 
     expect(drawHcu.globalHCU).to.be.lt(GLOBAL_LIMIT);
     expect(drawHcu.maxHCUDepth).to.be.lt(DEPTH_LIMIT);
-    expect(batchMax).to.be.gte(4); // design floor (DESIGN.md §8)
+    expect(batchMax).to.be.gte(4); // design floor
 
     await (await pot.advanceDraw(batch)).wait();
     expect(await pot.state()).to.eq(0n);

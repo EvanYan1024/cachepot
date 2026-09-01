@@ -66,7 +66,7 @@ export function findVault(address: string | undefined): VaultMeta | undefined {
 }
 
 export const CONFIDENTIAL_DECIMALS = 6; // every wrapper above exposes 6 on the encrypted side
-export const BATCH_SIZE = 6n; // measured HCU ceiling is 7 per tx, see DESIGN.md §8
+export const BATCH_SIZE = 6n; // measured HCU ceiling is 7 per tx
 export const ZERO_HANDLE = `0x${"0".repeat(64)}` as const;
 
 /// The wrapper mints amount/rate confidential units; rate bridges the decimals gap.

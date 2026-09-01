@@ -9,7 +9,7 @@ Deposit confidential tokens, keep your principal withdrawable at any time, and w
 
 > *cachepot* (French): a decorative pot made to conceal what's inside. A pot built for hiding — holding a confidential prize pool.
 
-Built for the **Zama Developer Program — Mainnet Season 4 Bounty Track** ("Build a Confidential Lottery on PoolTogether"). Deep-dive design doc (Chinese): [DESIGN.md](DESIGN.md).
+Built for the **Zama Developer Program — Mainnet Season 4 Bounty Track** ("Build a Confidential Lottery on PoolTogether").
 
 ## Why this is different
 
@@ -110,7 +110,6 @@ contracts/   Hardhat project — CachePrizePool, CacheVault, tests, deploy scrip
   scripts/rehearse.ts    full end-to-end round rehearsal against Sepolia
   scripts/earn-sweep.ts  strategist op: push idle cUSDC principal into Zama Earn
 web/         Vite + React frontend — RainbowKit + @zama-fhe/sdk (encrypt inputs, user-decrypt balances)
-DESIGN.md    full technical design: FHEVM constraints, HCU measurements, security arguments
 ```
 
 ## Run it

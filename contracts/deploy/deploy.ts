@@ -22,7 +22,7 @@ const SEPOLIA_EARN: Record<string, { shareToken: string; depositBatcher: string;
 };
 
 // PRIZE_TOKEN: the confidential asset every prize is paid in (must be an ERC7984
-// ERC-20 wrapper, so contributions can be verified as plaintext — see DESIGN.md §8.2).
+// ERC-20 wrapper, so contributions can be verified as plaintext).
 // VAULT_TOKENS: comma-separated confidential assets to open vaults over.
 // ROUND_PERIOD: draw period in seconds (default 600s for demo pacing).
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

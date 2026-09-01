@@ -5,7 +5,7 @@ import { deployments, ethers, fhevm } from "hardhat";
 // anything still pending past the grace period (junk registrations, empty vaults).
 // Safe to run concurrently with users — every call is permissionless. Usage:
 //   npx hardhat run scripts/keeper.ts --network sepolia
-const BATCH = 6; // measured HCU ceiling is 7 per tx, see DESIGN.md §8
+const BATCH = 6; // measured HCU ceiling is 7 per tx
 const VAULT_NAMES = ["CacheVault_cUSDT", "CacheVault_cUSDC", "CacheVault_cWETH"];
 // Sepolia has no live rate market, so the keeper simulates the yield leg: mint mock
 // USDT and push it through the same permissionless contribute() a production

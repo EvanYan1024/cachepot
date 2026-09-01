@@ -129,7 +129,7 @@ export function Docs() {
         lede="The full protocol: what stays encrypted, what stays public, and how anyone can verify a draw they cannot see."
         aside={
           <a href={GITHUB} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 self-start text-sm font-medium hover:underline">
-            <BookOpen className="size-4" /> Source & design doc <ArrowUpRight className="size-4" />
+            <BookOpen className="size-4" /> Source on GitHub <ArrowUpRight className="size-4" />
           </a>
         }
       />
@@ -330,7 +330,7 @@ export function Docs() {
           </div>
           <p className="mt-5 max-w-3xl text-xs leading-relaxed text-muted-foreground">
             cUSDT / cUSDC / cWETH are Zama's official confidential token wrappers — CachePot deliberately mints no token
-            of its own. Full design document, FHEVM constraint analysis and security arguments live in the{" "}
+            of its own. Full source, tests and deployment scripts live in the{" "}
             <a href={GITHUB} target="_blank" rel="noreferrer" className="underline decoration-border underline-offset-4 hover:decoration-foreground">
               repository
             </a>

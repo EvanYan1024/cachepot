@@ -8,7 +8,7 @@ import { CachePrizePool, CacheVault } from "../types";
 //
 // The sole depositor is present in BOTH funded vaults, so a broken single-payout
 // guard would credit the prize twice. That is the assertion this run exists for.
-const BATCH = 7; // measured HCU ceiling for the split architecture, see DESIGN.md §8
+const BATCH = 7; // measured HCU ceiling for the split architecture
 
 const VAULTS = [
   { name: "CacheVault_cUSDT", underlying: "0xa7dA08FafDC9097Cc0E7D4f113A61e31d7e8e9b0", deposit: 100_000_000n },

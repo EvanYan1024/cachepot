@@ -1,21 +1,22 @@
-/// The cachepot itself: a lidded vessel whose contents are hatched out.
+/// The cachepot itself: a planter concealing what grows in it — an asterisk,
+/// the same ****** mask every sealed balance wears in the app.
 export function PotMark({ className = "size-6" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
-      <defs>
-        <pattern id="pot-hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
-          <line x1="0" y1="0" x2="0" y2="4" stroke="currentColor" strokeWidth="1.1" opacity="0.45" />
-        </pattern>
-      </defs>
-      <path d="M7 13.5h18l-2.4 13.6a2.3 2.3 0 0 1-2.3 1.9h-8.6a2.3 2.3 0 0 1-2.3-1.9Z" fill="url(#pot-hatch)" />
-      <path
-        d="M7 13.5h18l-2.4 13.6a2.3 2.3 0 0 1-2.3 1.9h-8.6a2.3 2.3 0 0 1-2.3-1.9Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <rect x="4.6" y="8.2" width="22.8" height="5.3" rx="1.4" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="16" cy="10.9" r="1.7" className="fill-seal" />
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M16 4.4V16" />
+      <path d="M12.9 6.2l6.2 3.6" />
+      <path d="M19.1 6.2l-6.2 3.6" />
+      <rect x="6.8" y="16" width="18.4" height="3.2" rx="1.6" />
+      <path d="M9.2 19.2h13.6l-1.6 7.1a2.3 2.3 0 0 1-2.3 1.8h-5.8a2.3 2.3 0 0 1-2.3-1.8Z" />
     </svg>
   );
 }

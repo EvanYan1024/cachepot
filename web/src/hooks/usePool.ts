@@ -168,6 +168,7 @@ export type DrawRecord = {
   closedAt: number | undefined; // block timestamp of the close
   closeTx: `0x${string}`;
   drawn: boolean; // scan completed — whether anyone was paid stays encrypted on-chain
+  awardBlock?: bigint; // block of RoundAwarded — every credit for the round is final here
   vaults: `0x${string}`[]; // vaults scanned to completion
   skipped: `0x${string}`[];
 };
@@ -197,8 +198,10 @@ export function useDrawHistory() {
           row.contributed = log.args.totalContribution;
           row.closeTx = log.transactionHash;
           row.block = log.blockNumber;
-        } else if (log.eventName === "RoundAwarded") row.drawn = true;
-        else if (log.eventName === "VaultSkipped") row.skipped.push(log.args.vault);
+        } else if (log.eventName === "RoundAwarded") {
+          row.drawn = true;
+          row.awardBlock = log.blockNumber;
+        } else if (log.eventName === "VaultSkipped") row.skipped.push(log.args.vault);
         else row.vaults.push(log.args.vault);
       }
       // publicnode load-balances across backends with unequal log-index depth; a
@@ -361,6 +364,86 @@ export function usePosition() {
         walletBalance: read(walletBalanceHandle),
       }),
     ),
+  };
+}
+
+export type WinRecord = { roundId: bigint; closedAt: number | undefined; amount: bigint };
+
+const WIN_WINDOW = 24; // rounds of personal history to reconstruct per visit
+
+/// Personal win history, rebuilt without any on-chain record of it: the pool grants
+/// the user permanent decrypt rights on every historical prize-balance handle, so
+/// archive reads at each RoundAwarded block + user-side decryption recover the
+/// per-round deltas. Nobody else can run this — the handles decrypt only for the owner.
+export function useWinHistory() {
+  const { address } = useAccount();
+  const publicClient = usePublicClient();
+  const history = useDrawHistory();
+  const permit = useHasPermit({ contractAddresses: PERMITTED });
+  const wrongNetwork = useWrongNetwork();
+
+  const drawn = (history.data ?? [])
+    .filter((record) => record.drawn && record.awardBlock !== undefined)
+    .sort((a, b) => (a.roundId < b.roundId ? -1 : 1))
+    .slice(-(WIN_WINDOW + 1)); // one extra as the baseline for the oldest delta
+
+  const snapshots = useQuery({
+    queryKey: ["win-history", address, drawn.at(-1)?.roundId.toString()],
+    queryFn: async () =>
+      await Promise.all(
+        drawn.map(async (record) => ({
+          roundId: record.roundId,
+          closedAt: record.closedAt,
+          handle: (await publicClient!.readContract({
+            address: POOL_ADDRESS,
+            abi: poolAbi,
+            functionName: "prizeBalanceOf",
+            args: [address!],
+            blockNumber: record.awardBlock,
+          })) as `0x${string}`,
+        })),
+      ),
+    enabled: !!address && !!publicClient && drawn.length > 1,
+    staleTime: 60_000,
+  });
+
+  const sealedHandles = [...new Set((snapshots.data ?? []).map((s) => s.handle).filter((h) => h !== ZERO_HANDLE))];
+  const decrypted = useDecryptValues(
+    sealedHandles.map((encryptedValue) => ({ encryptedValue, contractAddress: POOL_ADDRESS })),
+    {
+      enabled: permit.data === true && sealedHandles.length > 0 && !wrongNetwork,
+      retry: 1,
+    } as Parameters<typeof useDecryptValues>[1],
+  );
+
+  const value = (handle: `0x${string}`) =>
+    handle === ZERO_HANDLE ? 0n : decrypted.data ? BigInt(decrypted.data[handle] as bigint) : undefined;
+
+  let wins: WinRecord[] | undefined;
+  if (snapshots.data && (sealedHandles.length === 0 || decrypted.data)) {
+    wins = [];
+    for (let i = 1; i < snapshots.data.length; i++) {
+      const prev = value(snapshots.data[i - 1].handle);
+      const current = value(snapshots.data[i].handle);
+      if (prev === undefined || current === undefined) {
+        wins = undefined;
+        break;
+      }
+      // a claim between snapshots pulls the delta negative — only positive deltas
+      // are provable wins. ponytail: a claim-then-win inside one interval understates
+      // that round; PrizeClaimed events could refine it if it ever matters.
+      if (current > prev) {
+        wins.push({ roundId: snapshots.data[i].roundId, closedAt: snapshots.data[i].closedAt, amount: current - prev });
+      }
+    }
+    wins?.reverse();
+  }
+
+  return {
+    hasPermit: permit.data === true,
+    loading: history.isLoading || snapshots.isLoading || decrypted.isLoading,
+    wins,
+    scanned: Math.max(0, drawn.length - 1),
   };
 }
 

@@ -6,7 +6,7 @@ import { TokenIcon } from "@/components/TokenIcon";
 import { Veil } from "@/components/Veil";
 import { Button } from "@/components/ui/button";
 import { POOL_ADDRESS, formatAmount } from "@/lib/contracts";
-import { usePoolActions, usePosition, useWrongNetwork } from "@/hooks/usePool";
+import { usePoolActions, usePosition, useWinHistory, useWrongNetwork } from "@/hooks/usePool";
 import { useTx } from "@/hooks/useTx";
 
 export function Account() {
@@ -119,6 +119,8 @@ export function Account() {
             </ul>
           </section>
 
+          <WinHistory />
+
           <div className="flex justify-end">
             <Button render={<Link to="/vaults" />} size="lg">
               Deposit more
@@ -161,6 +163,63 @@ export function Account() {
       )}
     </>
   );
+}
+
+/// Per-round wins recovered from archive snapshots of the user's encrypted prize
+/// balance — the chain stores no readable win record, but the owner can always
+/// decrypt their own past.
+function WinHistory() {
+  const { wins, loading, scanned } = useWinHistory();
+  return (
+    <section className="product-panel overflow-hidden">
+      <div className="flex flex-col gap-3 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div>
+          <h2 className="text-lg font-medium">My wins</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Rebuilt round by round from historical ciphertext only this wallet can decrypt.
+          </p>
+        </div>
+        <span className="status-chip self-start sm:self-auto"><Gift className="size-3" /> Only you can see this</span>
+      </div>
+
+      {wins === undefined ? (
+        <p className="p-5 text-sm text-muted-foreground sm:px-6">
+          {loading ? `Reconstructing from ${scanned + 1} archive snapshots…` : "Connect and authorize decryption to reveal your history."}
+        </p>
+      ) : wins.length === 0 ? (
+        <p className="p-5 text-sm text-muted-foreground sm:px-6">
+          No prizes landed in the last {scanned} completed draws. Odds accrue while you stay deposited.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border/70">
+          {wins.map((win) => (
+            <li key={win.roundId.toString()} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6">
+              <div className="flex items-center gap-3">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-foreground">
+                  <PartyPopper className="size-4" />
+                </span>
+                <div>
+                  <div className="text-sm font-medium">Round #{win.roundId.toString()}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{win.closedAt !== undefined ? formatWinDate(win.closedAt) : "—"}</div>
+                </div>
+              </div>
+              <span className="font-mono text-sm tabular">+{formatAmount(win.amount)} cUSDT</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function formatWinDate(timestamp: number): string {
+  return new Date(timestamp * 1000).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 
 function DisconnectedPortfolio() {

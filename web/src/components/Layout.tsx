@@ -7,7 +7,7 @@ import { sepolia } from "wagmi/chains";
 import { PotMark } from "@/components/PotMark";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
-import { POOL_ADDRESS, PRIZE_VAULT, VAULTS } from "@/lib/contracts";
+import { POOL_ADDRESS, PRIZE_VAULT } from "@/lib/contracts";
 import { useWrongNetwork } from "@/hooks/usePool";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,35 @@ const NAV = [
 function scan(address: string) {
   return `https://sepolia.etherscan.io/address/${address}`;
 }
+
+// grouped like the sibling Zama projects' footers: app nav, developer trail, ecosystem
+const FOOTER_COLS: { title: string; links: ({ label: string; to: string } | { label: string; href: string })[] }[] = [
+  {
+    title: "App",
+    links: [
+      { label: "Save", to: "/vaults" },
+      { label: "Draw", to: "/prize" },
+      { label: "Portfolio", to: "/account" },
+      { label: "Docs", to: "/docs" },
+    ],
+  },
+  {
+    title: "Developers",
+    links: [
+      { label: "GitHub", href: "https://github.com/EvanYan1024/cachepot" },
+      { label: "Prize pool contract", href: scan(POOL_ADDRESS) },
+      { label: "Prize token (cUSDT)", href: scan(PRIZE_VAULT.token) },
+    ],
+  },
+  {
+    title: "Zama",
+    links: [
+      { label: "Protocol docs", href: "https://docs.zama.org" },
+      { label: "Developer Program", href: "https://www.zama.org/programs/developer-program" },
+      { label: "Zama Earn", href: "https://app.zama.org/earn" },
+    ],
+  },
+];
 
 function WrongNetworkBanner() {
   const wrong = useWrongNetwork();
@@ -149,23 +178,44 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="mx-auto max-w-[1240px] px-4 pb-4 sm:px-6 lg:px-8">
-        <div className="grid gap-8 border-t border-border/70 py-8 text-sm md:grid-cols-[1fr_auto] md:items-end">
-          <div>
+      <footer className="mx-auto max-w-[1240px] px-4 pb-6 sm:px-6 lg:px-8">
+        <div className="grid gap-10 border-t border-border/70 py-10 sm:grid-cols-2 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
+          <div className="sm:col-span-2 md:col-span-1">
             <Link to="/" className="inline-flex items-center gap-2.5 font-semibold">
               <span className="grid size-8 place-items-center rounded-lg bg-primary"><PotMark className="size-4" /></span>
               CachePot
             </Link>
-            <p className="mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">Confidential prize savings on Zama FHEVM. Save familiar assets without publishing balances or winners.</p>
+            <p className="mt-3 max-w-xs text-xs leading-relaxed text-muted-foreground">
+              Confidential prize savings on Zama FHEVM. Save familiar assets without publishing balances, odds or winners.
+            </p>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs text-muted-foreground">
-            <Link to="/vaults" className="hover:text-foreground">Vaults</Link>
-            <Link to="/prize" className="hover:text-foreground">Draw</Link>
-            <Link to="/account" className="hover:text-foreground">Portfolio</Link>
-            <a href={scan(POOL_ADDRESS)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-foreground">Contracts <ExternalLink className="size-3" /></a>
-            <span>{VAULTS.length} vaults</span>
-            <a href={scan(PRIZE_VAULT.token)} target="_blank" rel="noreferrer" className="hover:text-foreground">Prize token ↗</a>
-          </div>
+          {FOOTER_COLS.map((col) => (
+            <div key={col.title}>
+              <div className="label text-muted-foreground">{col.title}</div>
+              <ul className="mt-4 space-y-2.5 text-sm">
+                {col.links.map((link) =>
+                  "to" in link ? (
+                    <li key={link.label}>
+                      <Link to={link.to} className="text-muted-foreground hover:text-foreground">{link.label}</Link>
+                    </li>
+                  ) : (
+                    <li key={link.label}>
+                      <a href={link.href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
+                        {link.label} <ExternalLink className="size-3" />
+                      </a>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border/70 py-5 font-mono text-[11px] tracking-[0.08em] text-muted-foreground">
+          <span>© 2026 CachePot · built for the Zama Developer Program</span>
+          <span className="inline-flex flex-wrap gap-x-6 gap-y-2">
+            <span>Built on Zama FHEVM</span>
+            <span>Sepolia</span>
+          </span>
         </div>
       </footer>
     </div>

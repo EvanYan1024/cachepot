@@ -33,7 +33,7 @@ export const VAULTS: VaultMeta[] = [
     faucetUnits: 1_000_000_000n, // 1,000 cUSDT
   },
   {
-    vault: "0x9bdAD480616dC0c17363068B42b229eb1Ef4CD76",
+    vault: "0xa415199C3Ea6AF2897d14907c04E5076890D61A9",
     token: "0x7c5BF43B851c1dff1a4feE8dB225b87f2C223639",
     underlying: "0x9b5Cd13b8eFbB58Dc25A05CF411D8056058aDFfF",
     symbol: "cUSDC",
@@ -41,9 +41,9 @@ export const VAULTS: VaultMeta[] = [
     underlyingDecimals: 6,
     faucetUnits: 1_000_000_000n, // 1,000 cUSDC
     earn: {
-      depositBatcher: "0x56E3CF41D18e58AF476C05e9B1705ac2b13862C9",
-      shareToken: "0x7E93d5c150A2178B1fCde0278582Acf59478eA5f",
-      fromBlock: 11554482n,
+      depositBatcher: "0x48758559c14d4d92b4C74A99660B6a8dbe85F53b",
+      shareToken: "0x13F7d34A4f0102734F19E3Ff16e068Fe194B28c4",
+      fromBlock: 11611542n,
     },
   },
   {

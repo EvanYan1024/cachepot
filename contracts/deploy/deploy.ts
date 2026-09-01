@@ -13,11 +13,13 @@ const SEPOLIA_TOKENS = {
 // Zama Confidential Vault (Earn) on Sepolia — only cUSDC has an Earn market, so
 // only that vault gets the wiring; the rest deploy with Earn disabled.
 // https://docs.zama.org/protocol/confidential-vault/reference/addresses
+// shareToken is read from the batchers' own toToken()/fromToken() — the docs page
+// still lists the pre-rotation cShare, which the new batchers no longer pay out.
 const SEPOLIA_EARN: Record<string, { shareToken: string; depositBatcher: string; redeemBatcher: string }> = {
   [SEPOLIA_TOKENS.cUSDC]: {
-    shareToken: "0x7E93d5c150A2178B1fCde0278582Acf59478eA5f",
-    depositBatcher: "0x56E3CF41D18e58AF476C05e9B1705ac2b13862C9",
-    redeemBatcher: "0xe35C25a0F49c6cDC0771C459F1b0548D1E741774",
+    shareToken: "0x13F7d34A4f0102734F19E3Ff16e068Fe194B28c4",
+    depositBatcher: "0x48758559c14d4d92b4C74A99660B6a8dbe85F53b",
+    redeemBatcher: "0xe94E9afdDd43a19C2914739e9279cb6Fe287BEb0",
   },
 };
 
@@ -63,5 +65,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 export default func;
-func.id = "deploy_cachepot_v6"; // v6: multi-vault win flag OR-accumulates within a round
+func.id = "deploy_cachepot_v7"; // v7: cUSDC vault re-wired to Zama's rotated Earn batchers
 func.tags = ["CachePot"];

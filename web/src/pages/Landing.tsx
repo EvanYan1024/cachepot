@@ -74,8 +74,8 @@ export function Landing() {
       <section className="product-panel overflow-hidden">
         <div className="relative min-h-[31rem] overflow-hidden sm:min-h-[38rem] lg:min-h-[43rem]">
           <img
-            src="/brand/cachepot-crystal-vault.png"
-            alt="A translucent crystal prize vault holding encrypted yellow tokens"
+            src="/brand/cachepot-concealed-vault.png"
+            alt="An opaque ivory cachepot concealing its contents beneath a softly glowing lid"
             className="absolute inset-0 size-full object-cover"
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(248,248,245,0.05)_35%,rgba(242,242,237,0.92)_100%)] dark:bg-[linear-gradient(180deg,rgba(19,19,18,0.05)_35%,rgba(19,19,18,0.92)_100%)]" />

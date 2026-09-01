@@ -10,9 +10,9 @@
 2. **Soft utility surfaces**：卡片使用 18–28px 圆角、浅色表面渐变、内高光和向下的柔影。
 3. **One task per page**：操作页采用居中窄列，大金额输入是视觉中心，不使用宽屏仪表盘堆叠。
 4. **Ink actions, yellow signals**：黑色立体按钮完成金融动作；黄色只表示选中、隐私和 Token 身份。
-5. **Image-led onboarding**：Dashboard 使用半透明 3D 产品视觉解释抽象的隐私能力。
+5. **Image-led onboarding**：Dashboard 使用不透明、已密封的产品视觉解释抽象的隐私能力。
 
-CachePot 的独有主题是“透明容器中的不可见账本”：界面展示奖池规模与协议状态，但个人余额和赢家保持密封。
+CachePot 的独有主题是“密封容器与可验证的外部状态”：界面展示奖池规模与协议进度，但容器内的个人余额、赔率和赢家始终被遮蔽。价值的存在由封口光线和星号暗示，而不是展示内容物。
 
 ## 视觉令牌
 
@@ -127,7 +127,7 @@ CachePot 的独有主题是“透明容器中的不可见账本”：界面展�
 ### Landing / Home
 
 - 首屏使用“Save privately. Win quietly.”的居中价值主张和双 CTA。
-- CachePot 专属半透明 3D 奖池主视觉承担产品解释，并叠加真实 Live prize。
+- CachePot 专属的不透明密封陶瓷罐承担产品解释，仅通过封口黄光和星号暗示价值，并叠加真实 Live prize。
 - 首屏后依次呈现协议证据、四步工作原理、实时 Vault、隐私边界和最终 CTA。
 - Landing 负责建立信任与解释价值；账户连接和交易操作留给产品页。
 
@@ -151,7 +151,7 @@ CachePot 的独有主题是“透明容器中的不可见账本”：界面展�
 
 ## 品牌资产
 
-`/public/brand/cachepot-crystal-vault.png` 是本项目生成的原创横向 3D 资产：透明奖池容器、黄色加密代币和机械锁结构。它不包含 Zama 的 Logo、盾牌或其他品牌资产。
+`/public/brand/cachepot-concealed-vault.png` 是本项目生成的原创横向品牌资产：不透明的象牙白陶瓷 cachepot 完全隐藏内容，仅从微开的盖缝透出黄色光线，并以单一几何星号表达“已密封的价值”。背景与应用的暖纸灰保持一致，不包含 Zama Logo 或其他第三方品牌资产。
 
 ## 动效
 

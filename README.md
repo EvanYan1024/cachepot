@@ -1,7 +1,7 @@
 # CachePot
 
 <p align="center">
-  <img src="web/public/brand/cachepot-crystal-vault.png" alt="CachePot" width="420" />
+  <img src="web/public/brand/cachepot-concealed-vault.png" alt="CachePot" width="420" />
 </p>
 
 **A confidential no-loss lottery on [Zama FHEVM](https://docs.zama.ai/protocol).**

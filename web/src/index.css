@@ -253,7 +253,7 @@
     .hero-visual {
         background-image:
             linear-gradient(to bottom, transparent 62%, color-mix(in oklab, var(--card) 88%, transparent)),
-            url('/brand/cachepot-crystal-vault.png');
+            url('/brand/cachepot-concealed-vault.png');
         background-position: center;
         background-size: cover;
     }

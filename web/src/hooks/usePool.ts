@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDecryptValues, useEncrypt, useGrantPermit, useHasPermit, useZamaSDK } from "@zama-fhe/react-sdk";
 import { useAccount, usePublicClient, useReadContracts, useWriteContract } from "wagmi";
 import { parseAbiItem, type AbiEvent, type ContractFunctionParameters, type GetLogsReturnType } from "viem";
@@ -322,6 +322,8 @@ export type VaultPosition = {
   walletBalanceHandle: `0x${string}` | undefined;
   balance: bigint | undefined;
   walletBalance: bigint | undefined;
+  balanceFailed: boolean;
+  walletBalanceFailed: boolean;
 };
 
 /// Permit-gated declarative decryption: one signature covers the whole protocol,
@@ -346,27 +348,42 @@ export function usePosition() {
   ];
 
   const wrongNetwork = useWrongNetwork();
-  const decrypted = useDecryptValues(inputs, {
-    enabled: permit.data === true && inputs.length > 0 && !wrongNetwork,
-    retry: 1,
-  } as Parameters<typeof useDecryptValues>[1]);
+  const sdk = useZamaSDK();
+  const { address } = useAccount();
+  // one query per handle: a ciphertext the KMS cannot reconstruct must not mask the rest
+  const queries = useQueries({
+    queries: inputs.map((input) => ({
+      queryKey: ["decrypt", address, input.contractAddress, input.encryptedValue],
+      queryFn: async () => (await sdk.decryption.decryptValues([input]))[input.encryptedValue],
+      enabled: permit.data === true && !wrongNetwork,
+      staleTime: Infinity,
+      retry: 1,
+    })),
+  });
+  const byHandle = new Map(inputs.map((input, i) => [input.encryptedValue, queries[i]]));
 
   /// A zero handle means the slot was never written — that decrypts to 0 without a round trip.
-  const read = (handle: `0x${string}` | undefined) =>
-    !sealed(handle) ? 0n : decrypted.data ? BigInt(decrypted.data[handle!] as bigint) : undefined;
+  const read = (handle: `0x${string}` | undefined) => {
+    if (!sealed(handle)) return 0n;
+    const data = byHandle.get(handle!)?.data;
+    return data === undefined ? undefined : BigInt(data as bigint);
+  };
+  const failed = (handle: `0x${string}` | undefined) => sealed(handle) && !!byHandle.get(handle!)?.error;
+  const errored = queries.filter((query) => query.error);
 
   return {
     hasPermit: permit.data === true,
     permitLoading: permit.isLoading,
     grantPermit: () => grant.mutateAsync(PERMITTED),
     granting: grant.isPending,
-    decrypting: decrypted.isFetching,
-    decryptError: (decrypted.error as Error | null) ?? null,
-    retryDecrypt: () => decrypted.refetch(),
+    decrypting: queries.some((query) => query.isFetching),
+    decryptError: (errored[0]?.error as Error | null) ?? null,
+    retryDecrypt: () => Promise.all(errored.map((query) => query.refetch())),
     prizeBalanceHandle,
     wonHandle,
     prizeBalance: read(prizeBalanceHandle),
-    won: sealed(wonHandle) && decrypted.data ? Boolean(decrypted.data[wonHandle!]) : false,
+    prizeBalanceFailed: failed(prizeBalanceHandle),
+    won: sealed(wonHandle) ? Boolean(byHandle.get(wonHandle!)?.data) : false,
     positions: vaultHandles.map(
       ({ meta, balanceHandle, walletBalanceHandle }): VaultPosition => ({
         meta,
@@ -374,6 +391,8 @@ export function usePosition() {
         walletBalanceHandle,
         balance: read(balanceHandle),
         walletBalance: read(walletBalanceHandle),
+        balanceFailed: failed(balanceHandle),
+        walletBalanceFailed: failed(walletBalanceHandle),
       }),
     ),
   };

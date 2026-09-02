@@ -58,7 +58,7 @@ export function Account() {
                 Confidential prize balance
               </div>
               <div className="numeral mt-4 text-4xl leading-none sm:text-5xl">
-                <Veil sealed={false} loading={position.prizeBalance === undefined} handle={position.prizeBalanceHandle}>
+                <Veil sealed={false} loading={position.prizeBalance === undefined && !position.prizeBalanceFailed} failed={position.prizeBalanceFailed} handle={position.prizeBalanceHandle}>
                   {position.prizeBalance !== undefined ? formatAmount(position.prizeBalance) : "0"}
                   <span className="ml-2 text-base font-medium tracking-normal text-muted-foreground">cUSDT</span>
                 </Veil>
@@ -96,7 +96,7 @@ export function Account() {
             </div>
 
             <ul>
-              {position.positions.map(({ meta, balance, balanceHandle, walletBalance, walletBalanceHandle }) => (
+              {position.positions.map(({ meta, balance, balanceHandle, balanceFailed, walletBalance, walletBalanceHandle, walletBalanceFailed }) => (
                 <li key={meta.vault} className="grid gap-5 border-t border-border/70 p-5 first:border-t-0 hover:bg-white/35 md:grid-cols-[1.1fr_1fr_1fr_.75fr_auto] md:items-center md:px-6">
                   <div className="flex items-center gap-3">
                     <TokenIcon symbol={meta.underlyingSymbol} className="size-10 shrink-0" />
@@ -106,8 +106,8 @@ export function Account() {
                     </div>
                   </div>
 
-                  <PositionValue label="In vault" value={balance} handle={balanceHandle} symbol={meta.symbol} />
-                  <PositionValue label="In wallet" value={walletBalance} handle={walletBalanceHandle} symbol={meta.symbol} />
+                  <PositionValue label="In vault" value={balance} handle={balanceHandle} failed={balanceFailed} symbol={meta.symbol} />
+                  <PositionValue label="In wallet" value={walletBalance} handle={walletBalanceHandle} failed={walletBalanceFailed} symbol={meta.symbol} />
 
                   <div>
                     <div className="text-xs text-muted-foreground md:hidden">Privacy</div>
@@ -285,12 +285,12 @@ function StatCell({ label, value, note }: { label: string; value?: string; note:
   );
 }
 
-function PositionValue({ label, value, handle, symbol }: { label: string; value?: bigint; handle?: `0x${string}`; symbol: string }) {
+function PositionValue({ label, value, handle, failed, symbol }: { label: string; value?: bigint; handle?: `0x${string}`; failed?: boolean; symbol: string }) {
   return (
     <div className="md:text-right">
       <div className="text-xs text-muted-foreground md:hidden">{label}</div>
       <div className="mt-1 font-mono text-sm tabular md:mt-0">
-        <Veil sealed={false} loading={value === undefined} handle={handle}>
+        <Veil sealed={false} loading={value === undefined && !failed} failed={failed} handle={handle}>
           {value !== undefined ? formatAmount(value) : "0"} <span className="text-xs text-muted-foreground">{symbol}</span>
         </Veil>
       </div>

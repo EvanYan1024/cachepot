@@ -33,6 +33,8 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
   const setAmount = mode === "deposit" ? setDepositAmount : setWithdrawAmount;
   const available = mode === "deposit" ? mine?.walletBalance : mine?.balance;
   const availableHandle = mode === "deposit" ? mine?.walletBalanceHandle : mine?.balanceHandle;
+  const availableFailed = mode === "deposit" ? mine?.walletBalanceFailed : mine?.balanceFailed;
+  const mineFailed = !!(mine?.balanceFailed || mine?.walletBalanceFailed);
 
   const trace = [
     "Encrypt the amount and produce an input proof in this tab",
@@ -61,8 +63,8 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             <div className="text-xs font-medium text-muted-foreground">Private position</div>
             <h2 className="mt-1 text-lg font-medium">Your {meta.symbol} balance</h2>
           </div>
-          <BalanceCell label="Private wallet" value={mine?.walletBalance} handle={mine?.walletBalanceHandle} symbol={meta.symbol} permit={position.hasPermit} />
-          <BalanceCell label="Saved in vault" value={mine?.balance} handle={mine?.balanceHandle} symbol={meta.symbol} permit={position.hasPermit} />
+          <BalanceCell label="Private wallet" value={mine?.walletBalance} handle={mine?.walletBalanceHandle} failed={mine?.walletBalanceFailed} symbol={meta.symbol} permit={position.hasPermit} />
+          <BalanceCell label="Saved in vault" value={mine?.balance} handle={mine?.balanceHandle} failed={mine?.balanceFailed} symbol={meta.symbol} permit={position.hasPermit} />
           <div className="flex min-h-24 items-center gap-4 border-t border-border/70 p-5">
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_8px_18px_rgb(255_217_26/0.2)]">
               <Fingerprint className="size-5" strokeWidth={1.7} />
@@ -70,14 +72,14 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             <div className="min-w-0 flex-1">
               <div className="text-xs text-muted-foreground">Balance visibility</div>
               <div className="mt-1 text-sm font-medium" title={position.decryptError?.message}>
-                {!position.hasPermit ? "Encrypted" : position.decryptError ? "Decryption failed" : "Private to this wallet"}
+                {!position.hasPermit ? "Encrypted" : mineFailed ? "Decryption failed" : "Private to this wallet"}
               </div>
             </div>
             {!position.hasPermit ? (
               <Button size="sm" disabled={disabled || position.granting || position.permitLoading} onClick={() => position.grantPermit()}>
                 {position.granting ? "Signing…" : "Unseal"}
               </Button>
-            ) : position.decryptError ? (
+            ) : mineFailed ? (
               <Button size="sm" variant="outline" disabled={position.decrypting} onClick={() => position.retryDecrypt()}>
                 {position.decrypting ? "Decrypting…" : "Retry"}
               </Button>
@@ -126,7 +128,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
                   <span className="flex items-center gap-2">
                     {mode === "deposit" ? "Balance" : "Your position"}
                     <span className="font-mono text-foreground tabular">
-                      <Veil sealed={!position.hasPermit} loading={position.hasPermit && available === undefined} handle={availableHandle}>
+                      <Veil sealed={!position.hasPermit} loading={position.hasPermit && available === undefined && !availableFailed} failed={availableFailed} handle={availableHandle}>
                         {available !== undefined ? formatAmount(available) : "0"} {meta.symbol}
                       </Veil>
                     </span>
@@ -243,12 +245,12 @@ function EarnCard({ meta }: { meta: VaultMeta }) {
   );
 }
 
-function BalanceCell({ label, value, handle, symbol, permit }: { label: string; value?: bigint; handle?: `0x${string}`; symbol: string; permit: boolean }) {
+function BalanceCell({ label, value, handle, failed, symbol, permit }: { label: string; value?: bigint; handle?: `0x${string}`; failed?: boolean; symbol: string; permit: boolean }) {
   return (
     <div className="min-h-24 border-t border-border/70 p-5">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-3 font-mono text-xl tabular">
-        <Veil sealed={!permit} loading={permit && value === undefined} handle={handle}>
+        <Veil sealed={!permit} loading={permit && value === undefined && !failed} failed={failed} handle={handle}>
           {value !== undefined ? formatAmount(value) : "0"} {symbol}
         </Veil>
       </div>

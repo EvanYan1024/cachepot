@@ -103,7 +103,8 @@ export function Vaults() {
                     <div className="label mb-2 text-muted-foreground lg:hidden">Your position</div>
                     <Veil
                       sealed={!position.hasPermit}
-                      loading={position.hasPermit && myPosition?.balance === undefined}
+                      loading={position.hasPermit && myPosition?.balance === undefined && !myPosition?.balanceFailed}
+                      failed={myPosition?.balanceFailed}
                       handle={myPosition?.balanceHandle}
                       className="font-mono text-sm tabular"
                     >

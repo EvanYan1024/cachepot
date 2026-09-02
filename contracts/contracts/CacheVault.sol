@@ -29,7 +29,7 @@ interface IVaultBatcher {
 contract CacheVault is ZamaEthereumConfig {
     uint256 public constant MAX_PARTICIPANTS = 256;
     // ponytail: fixed >>8 weight normalization keeps rand*totalWeight inside euint128.
-    // Ceiling: total balance-seconds per round < 2^72 (~$4.6M TVL on weekly rounds at
+    // Ceiling: total balance-seconds per round < 2^72 (~$7.8B TVL on weekly rounds at
     // 6 decimals); raise the shift or move target math to euint256 beyond that.
     uint8 public constant WEIGHT_SHIFT = 8;
 
@@ -269,29 +269,29 @@ contract CacheVault is ZamaEthereumConfig {
             if (_userWindow[p] == windowStart) {
                 // touched (or registered) after the close: weight was finalized then
                 w128 = _accPrev[p];
-                _accCur[p] = FHE.add(
-                    _accCur[p],
-                    FHE.mul(FHE.asEuint128(_balance[p]), uint128(block.timestamp - _lastTouch[p]))
-                );
-            } else if (_userWindow[p] == prevWindowStart) {
-                // untouched since the close: settle lazily
-                w128 = FHE.add(
-                    _accCur[p],
-                    FHE.mul(FHE.asEuint128(_balance[p]), uint128(windowStart - _lastTouch[p]))
-                );
-                _accCur[p] = FHE.mul(FHE.asEuint128(_balance[p]), uint128(block.timestamp - windowStart));
-                _userWindow[p] = windowStart;
             } else {
-                // stranded two or more windows behind by dead (skipped) scans: the stale
-                // weight belongs to rounds that paid nobody and is discarded. Untouched
-                // since before the drawn window opened, so the balance was constant
-                // across it and the exact weight is balance * window length.
-                w128 = FHE.mul(FHE.asEuint128(_balance[p]), uint128(windowStart - prevWindowStart));
-                _accCur[p] = FHE.mul(FHE.asEuint128(_balance[p]), uint128(block.timestamp - windowStart));
+                if (_userWindow[p] != prevWindowStart) {
+                    // stranded two or more windows behind by dead (skipped) scans: the stale
+                    // weight belongs to rounds that paid nobody and is discarded. Untouched
+                    // since before the drawn window opened, so the balance was constant
+                    // across it and the exact weight is balance * window length.
+                    w128 = FHE.mul(FHE.asEuint128(_balance[p]), uint128(windowStart - prevWindowStart));
+                } else if (_lastTouch[p] == _userWindow[p]) {
+                    // untouched since the close and nothing accrued in _accCur (empty interval)
+                    w128 = FHE.mul(FHE.asEuint128(_balance[p]), uint128(windowStart - _lastTouch[p]));
+                } else {
+                    // untouched since the close: settle lazily
+                    w128 = FHE.add(
+                        _accCur[p],
+                        FHE.mul(FHE.asEuint128(_balance[p]), uint128(windowStart - _lastTouch[p]))
+                    );
+                }
+                // the new window opens empty: the next touch accrues balance * (touch - windowStart)
+                _accCur[p] = FHE.asEuint128(0);
                 _userWindow[p] = windowStart;
+                _lastTouch[p] = windowStart;
+                FHE.allowThis(_accCur[p]);
             }
-            _lastTouch[p] = block.timestamp;
-            FHE.allowThis(_accCur[p]);
 
             euint64 w = FHE.asEuint64(FHE.shr(w128, WEIGHT_SHIFT));
             cum = FHE.add(cum, w);

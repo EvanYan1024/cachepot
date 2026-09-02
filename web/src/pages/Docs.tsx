@@ -87,8 +87,8 @@ const ALGORITHM = [
 
 const HCU = [
   { step: "closeRound", cost: "2.7 M", note: "randomness + odds intervals" },
-  { step: "advanceDraw / saver", cost: "2.55 M", note: "TWAB settle + compare + credit" },
-  { step: "advanceDraw / 6 savers", cost: "≈ 15.3 M", note: "below the 20 M per-tx ceiling" },
+  { step: "advanceDraw / saver", cost: "1.66 M", note: "TWAB settle + compare + credit" },
+  { step: "advanceDraw / 10 savers", cost: "≈ 16.9 M", note: "with the round finish, below the 20 M per-tx ceiling" },
 ];
 
 const CUSTODY = [

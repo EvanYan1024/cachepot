@@ -36,8 +36,8 @@ const ALGORITHM = [
 
 const HCU = [
   { step: "closeRound", cost: "2.7 M", note: "randomness + odds intervals" },
-  { step: "advanceDraw / saver", cost: "2.55 M", note: "TWAB + compare + credit" },
-  { step: "advanceDraw / 6", cost: "≈ 15.3 M", note: "below the 20 M ceiling" },
+  { step: "advanceDraw / saver", cost: "1.66 M", note: "TWAB + compare + credit" },
+  { step: "advanceDraw / 10", cost: "≈ 16.9 M", note: "below the 20 M ceiling" },
 ];
 
 export function Prize() {

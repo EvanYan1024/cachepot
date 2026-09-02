@@ -24,7 +24,7 @@ export type VaultMeta = {
 // way PoolTogether front-ends curate which prize vaults they show.
 export const VAULTS: VaultMeta[] = [
   {
-    vault: "0x5c02f2303DcFe19aeD5b2F15b479Bd1E810AdFef",
+    vault: "0xFA5d62eCdcaDF631B0e24c8D36b3A081D57B3822",
     token: "0x4E7B06D78965594eB5EF5414c357ca21E1554491",
     underlying: "0xa7dA08FafDC9097Cc0E7D4f113A61e31d7e8e9b0",
     symbol: "cUSDT",
@@ -33,7 +33,7 @@ export const VAULTS: VaultMeta[] = [
     faucetUnits: 1_000_000_000n, // 1,000 cUSDT
   },
   {
-    vault: "0xa415199C3Ea6AF2897d14907c04E5076890D61A9",
+    vault: "0xeeb99Db109aCfB1694cC99E1f16eA0CFe0A10b46",
     token: "0x7c5BF43B851c1dff1a4feE8dB225b87f2C223639",
     underlying: "0x9b5Cd13b8eFbB58Dc25A05CF411D8056058aDFfF",
     symbol: "cUSDC",
@@ -43,11 +43,11 @@ export const VAULTS: VaultMeta[] = [
     earn: {
       depositBatcher: "0x48758559c14d4d92b4C74A99660B6a8dbe85F53b",
       shareToken: "0x13F7d34A4f0102734F19E3Ff16e068Fe194B28c4",
-      fromBlock: 11611542n,
+      fromBlock: 11617018n,
     },
   },
   {
-    vault: "0xe4C075d06f9a382f40DFA84bb8ba3bfe25F350b3",
+    vault: "0xA3d1e322f2b2fA304d43AdE1ccc002B14617d9Cc",
     token: "0x46208622DA27d91db4f0393733C8BA082ed83158",
     underlying: "0xff54739b16576FA5402F211D0b938469Ab9A5f3F",
     symbol: "cWETH",
@@ -66,7 +66,7 @@ export function findVault(address: string | undefined): VaultMeta | undefined {
 }
 
 export const CONFIDENTIAL_DECIMALS = 6; // every wrapper above exposes 6 on the encrypted side
-export const BATCH_SIZE = 6n; // measured HCU ceiling is 7 per tx
+export const BATCH_SIZE = 10n; // worst common path 1.66M HCU/saver + 0.22M finish: 11 fits, 10 leaves margin
 export const ZERO_HANDLE = `0x${"0".repeat(64)}` as const;
 
 /// The wrapper mints amount/rate confidential units; rate bridges the decimals gap.

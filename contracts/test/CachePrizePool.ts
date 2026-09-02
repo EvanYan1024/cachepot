@@ -402,21 +402,57 @@ describe("CachePrizePool", function () {
     await expect(evil.finish()).to.be.revertedWith("not begun this round");
   });
 
-  it("HCU calibration: per-participant cost of the split architecture", async function () {
+  it("HCU calibration: per-saver cost by settle path, final batch with the round finish", async function () {
+    const GLOBAL_LIMIT = 20_000_000;
+    const DEPTH_LIMIT = 5_000_000;
+    const BATCH = 10; // production batch: web BATCH_SIZE and scripts/keeper.ts
+    const N = BATCH + 3; // two probe savers, then a final batch one larger than production
     const a = await newVault("AAA");
-    for (const s of signers.slice(1, 4)) await deposit(a.vault, a.address, s, 1000);
+    const under = (await ethers.getContractAt("TestERC20", await a.token.underlying())) as TestERC20;
+    const savers = signers.slice(1, 1 + N);
+    for (const s of savers.slice(3)) {
+      // newVault only funds signers 0..3
+      await (await under.mint(s.address, 10_000_000)).wait();
+      await (await under.connect(s).approve(await a.token.getAddress(), 10_000_000)).wait();
+      await (await a.token.connect(s).wrap(s.address, 10_000_000)).wait();
+      await (await a.token.connect(s).setOperator(a.address, OPERATOR_FOREVER)).wait();
+    }
+    for (const s of savers) await deposit(a.vault, a.address, s, 1000);
+
+    const measure = async (label: string, batch: number) => {
+      const h = fhevm.computeTransactionHCU((await (await a.vault.advanceDraw(batch)).wait())!);
+      console.log(`      ${label.padEnd(26)} global=${h.globalHCU} depth=${h.maxHCUDepth}`);
+      expect(h.globalHCU).to.be.lt(GLOBAL_LIMIT);
+      expect(h.maxHCUDepth).to.be.lt(DEPTH_LIMIT);
+      return h.globalHCU;
+    };
+
+    // round 1: every saver deposited inside the window — lazy settle, one mul and one add
     await contribute(a.address, 500);
     await time.increase(PERIOD);
     await (await pool.closeRound()).wait();
     await (await a.vault.beginDraw()).wait();
+    const fresh = await measure("r1 fresh saver", 1);
+    await measure("r1 fresh saver", 1);
+    await measure(`r1 final batch of ${BATCH + 1}`, BATCH + 1);
+    expect(await pool.state()).to.eq(0n);
 
-    const one = fhevm.computeTransactionHCU((await (await a.vault.advanceDraw(1)).wait())!);
-    const two = fhevm.computeTransactionHCU((await (await a.vault.advanceDraw(2)).wait())!);
-    const perParticipant = two.globalHCU - one.globalHCU;
-    console.log(`      advanceDraw(1)  global=${one.globalHCU} depth=${one.maxHCUDepth}`);
-    console.log(`      advanceDraw(2)  global=${two.globalHCU} depth=${two.maxHCUDepth}`);
-    console.log(`      per participant global≈${perParticipant}  →  BATCH_MAX=${Math.floor(20_000_000 / perParticipant)}`);
-    expect(two.globalHCU).to.be.lt(20_000_000);
-    expect(two.maxHCUDepth).to.be.lt(5_000_000);
+    // round 2: savers[0] deposits after the close (weight finalized then, no mul in the
+    // scan); everyone else is untouched since the last scan (one mul, no add)
+    await contribute(a.address, 500);
+    await time.increase(PERIOD);
+    await (await pool.closeRound()).wait();
+    await deposit(a.vault, a.address, savers[0], 1);
+    await (await a.vault.beginDraw()).wait();
+    const touched = await measure("r2 touched after close", 1);
+    const steady = await measure("r2 steady saver", 1);
+    await measure(`r2 final batch of ${BATCH + 1}`, BATCH + 1);
+    expect(await pool.state()).to.eq(0n);
+    expect(touched).to.be.lt(steady);
+    expect(steady).to.be.lt(fresh);
+
+    let winners = 0;
+    for (const s of savers) if (await wonLastRound(s)) winners++;
+    expect(winners).to.eq(1);
   });
 });

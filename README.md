@@ -93,9 +93,9 @@ The Sepolia Earn market accrues nothing — its ERC-4626 has stayed at an exact 
 | Contract | Address |
 |---|---|
 | CachePrizePool | [`0x1C76078391451fC60b82f529CC9c22970CEdD488`](https://sepolia.etherscan.io/address/0x1C76078391451fC60b82f529CC9c22970CEdD488) |
-| CacheVault (cUSDT) | `0x5c02f2303DcFe19aeD5b2F15b479Bd1E810AdFef` |
-| CacheVault (cUSDC) | `0xa415199C3Ea6AF2897d14907c04E5076890D61A9` — principal deploys into Zama Earn |
-| CacheVault (cWETH) | `0xe4C075d06f9a382f40DFA84bb8ba3bfe25F350b3` |
+| CacheVault (cUSDT) | `0xFA5d62eCdcaDF631B0e24c8D36b3A081D57B3822` |
+| CacheVault (cUSDC) | `0xeeb99Db109aCfB1694cC99E1f16eA0CFe0A10b46` — principal deploys into Zama Earn |
+| CacheVault (cWETH) | `0xA3d1e322f2b2fA304d43AdE1ccc002B14617d9Cc` |
 | cUSDT / cUSDC / cWETH | official Zama confidential token wrappers |
 | USDTMock (prize underlying) | `0xa7dA08FafDC9097Cc0E7D4f113A61e31d7e8e9b0` — public `mint`, doubles as the faucet |
 

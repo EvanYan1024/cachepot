@@ -65,5 +65,5 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   }
 };
 export default func;
-func.id = "deploy_cachepot_v7"; // v7: cUSDC vault re-wired to Zama's rotated Earn batchers
+func.id = "deploy_cachepot_v8"; // v8: vault scan opens the next window empty, batch 6 -> 10
 func.tags = ["CachePot"];

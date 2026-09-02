@@ -78,7 +78,13 @@ export function Account() {
                 <h2 className="text-lg font-medium">Vault positions</h2>
                 <p className="mt-1 text-xs text-muted-foreground">Private balances across every supported asset.</p>
               </div>
-              <span className="status-chip self-start sm:self-auto"><Fingerprint className="size-3" /> Decrypted locally</span>
+              {position.decryptError ? (
+                <Button size="sm" variant="outline" className="self-start sm:self-auto" title={position.decryptError.message} disabled={position.decrypting} onClick={() => position.retryDecrypt()}>
+                  {position.decrypting ? "Decrypting…" : "Decryption failed · Retry"}
+                </Button>
+              ) : (
+                <span className="status-chip self-start sm:self-auto"><Fingerprint className="size-3" /> Decrypted locally</span>
+              )}
             </div>
 
             <div className="hidden grid-cols-[1.1fr_1fr_1fr_.75fr_auto] gap-4 border-b border-border/70 bg-secondary/55 px-6 py-3 text-[11px] text-muted-foreground md:grid">

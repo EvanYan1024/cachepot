@@ -69,13 +69,19 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             </span>
             <div className="min-w-0 flex-1">
               <div className="text-xs text-muted-foreground">Balance visibility</div>
-              <div className="mt-1 text-sm font-medium">{position.hasPermit ? "Private to this wallet" : "Encrypted"}</div>
+              <div className="mt-1 text-sm font-medium" title={position.decryptError?.message}>
+                {!position.hasPermit ? "Encrypted" : position.decryptError ? "Decryption failed" : "Private to this wallet"}
+              </div>
             </div>
-            {!position.hasPermit && (
+            {!position.hasPermit ? (
               <Button size="sm" disabled={disabled || position.granting || position.permitLoading} onClick={() => position.grantPermit()}>
                 {position.granting ? "Signing…" : "Unseal"}
               </Button>
-            )}
+            ) : position.decryptError ? (
+              <Button size="sm" variant="outline" disabled={position.decrypting} onClick={() => position.retryDecrypt()}>
+                {position.decrypting ? "Decrypting…" : "Retry"}
+              </Button>
+            ) : null}
           </div>
         </section>
 

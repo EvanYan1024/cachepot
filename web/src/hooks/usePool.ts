@@ -354,10 +354,12 @@ export function usePosition() {
   const queries = useQueries({
     queries: inputs.map((input) => ({
       queryKey: ["decrypt", address, input.contractAddress, input.encryptedValue],
-      queryFn: async () => (await sdk.decryption.decryptValues([input]))[input.encryptedValue],
+      // a relayer job can sit pending for minutes; a KMS failure repeats for the same
+      // ciphertext, so fail fast and leave retries to the button
+      queryFn: async () => (await sdk.decryption.decryptValues([input], { timeout: 60_000 }))[input.encryptedValue],
       enabled: permit.data === true && !wrongNetwork,
       staleTime: Infinity,
-      retry: 1,
+      retry: false,
     })),
   });
   const byHandle = new Map(inputs.map((input, i) => [input.encryptedValue, queries[i]]));

@@ -67,10 +67,15 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_8px_18px_rgb(255_217_26/0.2)]">
               <Fingerprint className="size-5" strokeWidth={1.7} />
             </span>
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="text-xs text-muted-foreground">Balance visibility</div>
               <div className="mt-1 text-sm font-medium">{position.hasPermit ? "Private to this wallet" : "Encrypted"}</div>
             </div>
+            {!position.hasPermit && (
+              <Button size="sm" disabled={disabled || position.granting || position.permitLoading} onClick={() => position.grantPermit()}>
+                {position.granting ? "Signing…" : "Unseal"}
+              </Button>
+            )}
           </div>
         </section>
 
@@ -171,11 +176,7 @@ function VaultDetail({ meta }: { meta: NonNullable<ReturnType<typeof findVault>>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               The chain stores ciphertext handles, not amounts. Only a permit signed by this wallet lets the interface reveal its own balances.
             </p>
-            {!position.hasPermit ? (
-              <Button className="mt-5 w-full" disabled={disabled || position.granting || position.permitLoading} onClick={() => position.grantPermit()}>
-                {position.granting ? "Waiting for signature…" : "Unseal my balances"}
-              </Button>
-            ) : (
+            {position.hasPermit && (
               <Button render={<Link to="/account" />} variant="outline" className="mt-5 w-full">Open portfolio</Button>
             )}
           </section>

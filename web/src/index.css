@@ -143,6 +143,12 @@
 }
 
 @layer base {
+    /* Tailwind v4 preflight resets buttons to cursor: default */
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+
     * {
         @apply border-border outline-ring/50;
     }
